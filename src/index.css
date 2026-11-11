@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/*
+  Design tokens from Figma (Tripket.ph → Tripket 2.0.4).
+  Names mirror the Figma variables: text/primary → --color-text-primary, etc.
+  Values marked "unnamed" are raw values used in the frames without a Figma variable.
+*/
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-script: "Leckerli One", cursive;
+
+  /* Figma variables */
+  --color-text-primary: #1c1917;
+  --color-text-secondary: #5e5d5f;
+  --color-text-muted: #6c6c70;
+  --color-text-inverse: #ffffff;
+  --color-border-default: #d1d1d6;
+  --color-border-subtle: #e5e5ea;
+  --color-primary-default: #f97316;
+  --color-primary-dark: #ea580c;
+  --color-primary-light: #fb923c;
+  --color-brand-50: #fff7ed;
+  --color-neutral-400: #a8a29e;
+
+  /* unnamed in Figma */
+  --color-logo-orange: #ff6b00;
+  --color-rebook-bg: #fff6eb;
+  --color-chip-dark: #242527;
+  --color-badge-red: #ff3b30;
+  --color-nav-surface: rgba(255, 251, 247, 0.78);
+  --color-nav-label: rgba(60, 60, 67, 0.6);
+  --color-nav-active: rgba(116, 116, 116, 0.05);
+  --color-icon-button: rgba(248, 248, 250, 0.7);
+  --color-banner-overlay: rgba(46, 46, 46, 0.5);
+
+  /* prototype chrome (not in Figma): page behind the phone frame */
+  --color-canvas: #f2f2f7;
+
+  --radius-4: 4px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-40: 40px;
+
+  --shadow-button: 0 2px 6px rgba(249, 115, 22, 0.3);
+  --shadow-avatar: 0 2px 12px rgba(249, 115, 22, 0.3);
+  --shadow-swap: 0 1px 1.5px rgba(0, 0, 0, 0.1), 0 1px 1px rgba(0, 0, 0, 0.1);
+  --shadow-nav: 0 0 0 0.5px rgba(0, 0, 0, 0.04), 0 2px 20px rgba(0, 0, 0, 0.05),
+    0 8px 40px -4px rgba(0, 0, 0, 0.06);
+  --shadow-nav-inset: inset 0 0.5px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -0.5px 0 rgba(0, 0, 0, 0.04);
+}
+
+/* Figma gradient used on Button, avatar and "Next?" */
+@utility bg-primary-gradient {
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-primary-light),
+    var(--color-primary-default) 40%,
+    var(--color-primary-dark)
+  );
+}
+
+/* Figma text styles ("lineHeight 100" in Figma = auto → normal) */
+@utility type-display-xl {
+  font-size: 28px; font-weight: 800; line-height: 1; letter-spacing: -0.7px;
+}
+@utility type-heading-lg {
+  font-size: 18px; font-weight: 700; line-height: 1.2; letter-spacing: -0.3px;
+}
+@utility type-heading-md {
+  font-size: 16px; font-weight: 700; line-height: normal; letter-spacing: -0.4px;
+}
+@utility type-heading-sm {
+  font-size: 14px; font-weight: 600; line-height: normal;
+}
+@utility type-body-md {
+  font-size: 14px; font-weight: 500; line-height: normal;
+}
+@utility type-label-lg {
+  font-size: 13px; font-weight: 600; line-height: normal; letter-spacing: 0.33px;
+}
+@utility type-label-md {
+  font-size: 12px; font-weight: 600; line-height: normal;
+}
+@utility type-label-sm {
+  font-size: 11px; font-weight: 600; line-height: normal;
+}
+@utility type-caption-lg {
+  font-size: 12px; font-weight: 500; line-height: normal;
+}
+@utility type-caption-md {
+  font-size: 11px; font-weight: 500; line-height: normal;
+}
+@utility type-caption-sm {
+  font-size: 10px; font-weight: 600; line-height: normal;
+}
+
+body {
+  @apply bg-white font-sans text-text-primary antialiased;
+}
+
+/*
+  Motion copied from the live app (book.tripket.ph), measured frame by frame.
+*/
+
+/* Page entering after a route load: fade in + rise 16px, 300ms ease. `backwards` so no transform remains afterwards
+   (a lingering transform would re-anchor position:fixed sheets to the page instead of the phone screen). */
+@keyframes page-enter {
+  from { opacity: 0; translate: 0 16px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@utility animate-page-enter {
+  animation: page-enter 300ms ease backwards;
+}
+
+/* Route loader logo (PageLoader.tsx) */
+.loader-logo path {
+  fill: #ff6b00;
+  stroke: #ff6b00;
+  stroke-width: 0.2;
+  stroke-dasharray: 0 1;
+  fill-opacity: 0;
+  animation:
+    loader-draw 1000ms linear(0, 0.101 5.2%, 0.321 11.8%, 0.526 18.5%, 0.688 25.2%, 0.801 31.9%, 0.875 38.5%, 0.924 45.2%, 0.954 51.9%, 0.972 58.4%, 0.984 65.1%, 0.994 78.4%, 1) forwards,
+    loader-fill 500ms linear(0, 0.185 11.5%, 0.378 24.7%, 0.549 37.7%, 0.702 50.9%, 0.83 63.9%, 0.927 77.1%, 0.988 90.3%, 1) 600ms forwards;
+}
+@keyframes loader-draw { to { stroke-dasharray: 1 1; } }
+@keyframes loader-fill { to { fill-opacity: 1; } }
+.loader-logo g { transform-box: fill-box; transform-origin: 50% 50%; }
+.loader-boat { animation: loader-boat 4s ease-in-out infinite; }
+@keyframes loader-boat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33.3% { transform: translateY(-3px) rotate(2deg); }
+  66.7% { transform: translateY(1.5px) rotate(-1.5deg); }
+}
+.loader-wave-a { animation: loader-wave-a 1.5s ease-in-out infinite alternate; }
+@keyframes loader-wave-a {
+  from { transform: translateX(-1.5px); }
+  to { transform: translateX(1.5px) translateY(0.4px); }
+}
+.loader-wave-b { animation: loader-wave-b 1.25s ease-in-out infinite alternate; }
+@keyframes loader-wave-b {
+  from { transform: translateX(1.2px); }
+  to { transform: translateX(-1.2px) translateY(-0.3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-enter, .loader-logo path, .loader-logo g { animation: none; }
+  .loader-logo path { stroke-dasharray: none; fill-opacity: 1; }
+}
+
+/* Booking progress: the new step's segment fills in (BookingHeader.tsx) */
+@keyframes progress-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}

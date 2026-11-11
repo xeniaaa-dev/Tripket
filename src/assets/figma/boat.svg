@@ -1,0 +1,13 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20.9928" height="20.9928" viewBox="0 0 20.9928 20.9928" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Boat" clip-path="url(#clip0_0_18)">
+<path id="Vector" d="M1.7494 18.5377C2.34878 19.4571 3.12358 19.4571 3.73758 18.5377C5.71165 15.5179 7.59198 20.7097 8.98578 18.5717C11.1113 15.3679 12.6401 20.9244 14.234 18.5377C16.3124 15.3581 17.6072 20.6233 19.2434 18.8797" stroke-width="1.92434" stroke-linecap="round" stroke="#F97316"/>
+<path id="Vector_2" d="M3.12467 14.8699L1.81483 11.0612C1.57772 10.3717 2.01428 9.62169 2.65273 9.62169H18.2446C20.951 9.62169 17.489 14.8699 15.7416 14.8699" stroke-width="1.92434" stroke-linecap="round" stroke-linejoin="round" stroke="#F97316"/>
+<path id="Vector_3" d="M15.7446 9.62169L13.2963 6.56131C12.6323 5.73134 11.627 5.24819 10.5642 5.24819H6.99759C6.03142 5.24819 5.24819 6.03142 5.24819 6.99759V9.62169" stroke-width="1.92434" stroke-linecap="round" stroke-linejoin="round" stroke="#F97316"/>
+<path id="Vector_4" d="M8.74699 5.24819V2.6241C8.74699 2.14102 8.35537 1.7494 7.87229 1.7494H6.99759" stroke-width="1.92434" stroke-linecap="round" stroke-linejoin="round" stroke="#F97316"/>
+</g>
+<defs>
+<clipPath id="clip0_0_18">
+<rect width="20.9928" height="20.9928" fill="white"/>
+</clipPath>
+</defs>
+</svg>

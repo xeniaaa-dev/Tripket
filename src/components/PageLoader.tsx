@@ -1,0 +1,32 @@
+// Full-screen loader shown when the live app (book.tripket.ph) changes route (e.g. Home → booking):
+// white/50 + blur overlay, the Tripket boat drawn in (stroke 1s, then fill), boat bobbing and waves drifting.
+// Logo paths and timings copied from the live app; animations are in index.css (.loader-*).
+export default function PageLoader() {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-lg" role="status" aria-label="Loading">
+      <svg width="100" height="70" viewBox="-3 -4 50.9977 35.9973" fill="none" className="loader-logo overflow-visible">
+        <g className="loader-boat">
+          <path pathLength={1} d="M22.5459 0.021127L15.9417 0.634933L10.3484 5.01597L10.9431 13.3963L12.4008 13.1719L15.372 5.37467L22.5459 1.88748V0.021127Z" />
+          <path pathLength={1} d="M27.8783 0.39895L16.2027 5.97691L12.9974 14.1712L7.66884 15.0612L8.95591 19.6418C15.1074 18.5849 20.2709 16.3963 27.2511 11.3266L28.0183 0.796005L34.8719 6.9379L27.8783 0.39895Z" />
+          <path pathLength={1} opacity="0.85" d="M27.7824 4.01466L27.2453 11.3267L32.5624 14.4935L34.8661 6.93795L27.7824 4.01466Z" />
+          <path pathLength={1} opacity="0.85" d="M26.9768 14.1348L26.6584 18.9934C28.3348 18.7517 29.8655 18.863 31.1641 19.1315L32.1136 15.8323L26.9768 14.1348Z" />
+          <path pathLength={1} d="M9.28971 20.7409L9.90735 23.5241C14.6279 23.4302 17.4073 22.4653 20.3555 21.4641C22.8683 20.576 24.5045 19.8432 26.6682 19.0031C27.0307 18.8534 26.9866 14.1444 26.9866 14.1444C22.1394 17.5107 17.6183 19.7262 9.28971 20.7409Z" />
+        </g>
+        <g className="loader-wave-a">
+          <path pathLength={1} d="M-1.02296e-07 23.5222C4.22567 25.8662 8.45134 26.4148 11.81 26.4148C17.3074 26.4148 20.7313 23.3726 28.7837 23.2057C34.3022 23.0945 39.0592 24.7134 44.9977 27.9762C40.6685 23.6718 35.783 20.6949 29.1462 20.5453C24.3508 20.4436 20.3362 23.0101 16.0836 24.1475C11.6988 25.3502 6.51594 25.3406 -1.02296e-07 23.5222Z" />
+        </g>
+        <g className="loader-wave-b">
+          <path pathLength={1} d="M10.0742 27.6846C13.2276 28.0606 16.3983 28.0241 19.7379 27.1897C22.548 26.4397 24.14 25.987 27.2302 25.987C29.9156 25.987 32.1771 26.5145 35.0696 27.4813C32.81 25.8547 30.1841 24.7383 27.0748 24.7383C24.3702 24.7383 23.0409 25.6686 20.0678 26.4954C17.4418 27.2837 14.7794 27.6846 10.0742 27.6846Z" />
+        </g>
+      </svg>
+    </div>
+  )
+}
+
+/** How long the loader stays up. Live it lasts as long as the route loads (~300–700ms on a normal connection). */
+// oxlint-disable-next-line react/only-export-components
+export const LOADER_MS = 700
+
+/** Pass as navigate(to, { state: PAGE_LOAD }) to get the live route change: blank screen + loader, then the page enters. */
+// oxlint-disable-next-line react/only-export-components
+export const PAGE_LOAD = { pageEnter: true }
