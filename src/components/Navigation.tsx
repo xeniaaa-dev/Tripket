@@ -27,8 +27,7 @@ export default function Navigation({ ticketCount }: { ticketCount: number }) {
   const ticketsActive = pathname === '/tickets'
   return (
     <nav className="flex w-full gap-[8px] px-[16px]">
-      <div className="relative flex h-[60.937px] flex-[2] items-center rounded-full bg-nav-surface px-[5.985px] shadow-nav">
-        <span className="pointer-events-none absolute inset-0 rounded-full shadow-nav-inset" />
+      <div className="relative flex h-[60.937px] flex-[2] items-center rounded-full px-[5.985px] border border-white/90 bg-white/92 backdrop-blur-[20px] backdrop-saturate-150 shadow-[0_-6px_12px_2px_rgba(0,0,0,0.05),0_6px_12px_2px_rgba(0,0,0,0.05)]">
         <Tab icon={(t) => <Boat tone={t} />} label="Book" active={pathname === '/'} onClick={() => navigate('/', { state: { pageEnter: true, noLoader: true } })} />
         <Tab icon={(t) => <UserGroup tone={t} />} label="Passengers" active={pathname === '/passengers'} onClick={() => navigate('/passengers')} />
         <Tab icon={(t) => <Appointment02 tone={t} />} label="Schedule" active={pathname === '/schedule'} onClick={() => navigate('/schedule')} />
@@ -37,13 +36,12 @@ export default function Navigation({ ticketCount }: { ticketCount: number }) {
         type="button"
         onClick={() => navigate('/tickets')}
         aria-current={ticketsActive ? 'page' : undefined}
-        className={`relative flex h-[60.937px] flex-1 items-center justify-center gap-[8px] rounded-full shadow-nav transition-colors duration-200 ${ticketsActive ? 'bg-primary-default' : 'bg-nav-surface'}`}
+        className={`relative flex h-[60.937px] flex-1 items-center justify-center gap-[8px] rounded-full border transition-colors duration-200 ${ticketsActive ? 'border-primary-default bg-primary-default shadow-[0_-6px_12px_2px_rgba(0,0,0,0.05),0_6px_12px_2px_rgba(0,0,0,0.05)]' : 'border border-white/90 bg-white/92 backdrop-blur-[20px] backdrop-saturate-150 shadow-[0_-6px_12px_2px_rgba(0,0,0,0.05),0_6px_12px_2px_rgba(0,0,0,0.05)]'}`}
       >
-        <span className="pointer-events-none absolute inset-0 rounded-full shadow-nav-inset" />
         <span className="relative">
           <TicketStar tone={ticketsActive ? 'inverse' : 'inactive'} />
           {ticketCount > 0 && (
-            <span className="absolute top-[-6px] left-[11px] flex size-[15.985px] items-center justify-center rounded-full bg-primary-default px-[4px] text-[9px] leading-[9px] font-bold text-white">
+            <span className={`absolute top-[-6px] left-[11px] flex size-[15.985px] items-center justify-center rounded-full px-[4px] text-[9px] leading-[9px] font-bold transition-colors duration-200 ${ticketsActive ? 'bg-white text-primary-default' : 'bg-primary-default text-white'}`}>
               {ticketCount}
             </span>
           )}

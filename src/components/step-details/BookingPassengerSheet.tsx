@@ -1,7 +1,8 @@
 import { ageFrom, PASSENGER_TYPES, type FileRef, type Gender, type PassengerType } from '../../data/passengers'
 import { Chip, DateField, GenderToggle, SubmitButton, TextField, UploadField } from '../passengers/Fields'
 import { FormSheet } from '../passengers/Sheets'
-import { MAX_NAME, NAME_RE, useForm } from '../passengers/useForm'
+import SampleFill from '../passengers/SampleFill'
+import { MAX_NAME, NAME_RE, SAMPLE_FILE, useForm } from '../passengers/useForm'
 import type { NewPassenger } from './Forms'
 
 // Live "Add Passenger" sheet on Passenger details (guest): same fields/validation as the Passengers tab form, minus the profile-only fields.
@@ -64,6 +65,7 @@ export default function BookingPassengerSheet({ onSubmit, onClose }: { onSubmit:
   return (
     <FormSheet title="Add Passenger" onClose={onClose}>
       <form noValidate onSubmit={submit} className="flex flex-col gap-[16px]">
+        <SampleFill onClick={() => f.fill({ type: 'Regular', firstName: 'Juan', middleName: 'Santos', lastName: 'Dela Cruz', birth: ['05', '14', '1995'], gender: 'male', idFront: SAMPLE_FILE('id-front.svg') })} />
         <div className="flex flex-col gap-[6px]">
           <label className="mb-[8px] text-[12px] leading-[16px] text-[#8e8e93]">Passenger Type</label>
           <div className="flex flex-wrap gap-[6px]">

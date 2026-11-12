@@ -5,7 +5,7 @@ import BookingHeader from '../components/booking/BookingHeader'
 import StepFooter from '../components/booking/StepFooter'
 import PaymentSheet from '../components/tickets/PaymentSheet'
 import ReviewRouteBanner from '../components/step-review/ReviewRouteBanner'
-import { ContactDetails, PassengersSection, PaymentMethod, PriceSummary, TermsNote, TripDetails, VehiclesSection } from '../components/step-review/ReviewSections'
+import { ContactDetails, PassengersSection, PaymentMethod, type PayMethod, PriceSummary, TermsNote, TripDetails, VehiclesSection } from '../components/step-review/ReviewSections'
 import { pesoTotal, reviewData, shortDate } from '../data/step-review'
 import { LINES, lineOf } from '../data/tickets'
 import type { TicketStatus } from '../booking/BookingContext'
@@ -15,7 +15,7 @@ export default function ReviewPay() {
   const navigate = useNavigate()
   const { booking, addTicket } = useBooking()
   const { passengers, vehicles, trip, subtotal, serviceFee, total } = reviewData(booking)
-  const [cardSelected, setCardSelected] = useState(true)
+  const [method, setMethod] = useState<PayMethod>('card')
   const [paying, setPaying] = useState(false)
   // Pay → card payment sheet: paid → the line's first status (OceanJet processing, Maayo generating, HS confirmed);
   // closed unpaid → PENDING PAYMENT (15:00 window); Maayo only: declined → PAYMENT FAILED
@@ -38,14 +38,14 @@ export default function ReviewPay() {
           {vehicles.length > 0 && <VehiclesSection vehicles={vehicles} />}
           <PriceSummary subtotal={subtotal} serviceFee={serviceFee} total={total} />
         </div>
-        <PaymentMethod selected={cardSelected} onToggle={() => setCardSelected((s) => !s)} />
+        <PaymentMethod method={method} onChange={setMethod} />
         <ContactDetails />
       </div>
 
-      <StepFooter note={<TermsNote />} disabled={!cardSelected} onClick={() => setPaying(true)}>
+      <StepFooter note={<TermsNote />} onClick={() => setPaying(true)}>
         <span className="font-bold whitespace-pre">{`Pay ${pesoTotal(total)}  `}</span>
       </StepFooter>
-      <PaymentSheet open={paying} total={total} line={line} onPaid={() => submit(LINES[line].paidStatus)} onFailed={() => submit('failed')} onClose={() => submit('pending')} />
+      <PaymentSheet open={paying} method={method} total={total} line={line} onPaid={() => submit(LINES[line].paidStatus)} onFailed={() => submit('failed')} onClose={() => submit('pending')} />
     </div>
   )
 }

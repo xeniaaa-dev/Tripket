@@ -2,7 +2,8 @@ import { DEFAULT_VEHICLE_TYPE, VEHICLE_TYPES, saveVehicle, type FileRef, type Sa
 import { SubmitButton, TextField, UploadField } from './Fields'
 import { FormSheet } from './Sheets'
 import { showSuccess } from './Toast'
-import { MAX_NAME, useForm } from './useForm'
+import SampleFill from './SampleFill'
+import { MAX_NAME, SAMPLE_FILE, useForm } from './useForm'
 
 // Live SAVED_VEHICLE_FORM_SHEET ("Add Vehicle" / "Edit Vehicle") with its yup schema messages.
 
@@ -50,6 +51,9 @@ export default function VehicleForm({ editing, onClose }: { editing: SavedVehicl
   return (
     <FormSheet title={editing ? 'Edit Vehicle' : 'Add Vehicle'} onClose={onClose}>
       <form noValidate onSubmit={submit} className="flex flex-col gap-[16px]">
+        {!editing && (
+          <SampleFill onClick={() => f.fill({ type: DEFAULT_VEHICLE_TYPE, plate: 'ABC 1234', year: '2020', make: 'Toyota', model: 'Vios', photo: SAMPLE_FILE('vehicle.svg'), or: SAMPLE_FILE('or.svg'), cr: SAMPLE_FILE('cr.svg') })} />
+        )}
         <div className="flex flex-col gap-[6px]">
           <label className="mb-[8px] text-[12px] leading-[16px] text-[#737373]">Vehicle Type</label>
           <div className="flex flex-wrap gap-[6px]">

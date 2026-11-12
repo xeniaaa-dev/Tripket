@@ -137,37 +137,70 @@ export function PriceSummary(props: { subtotal: number; serviceFee: number; tota
   )
 }
 
-// Figma: Payment method (node 12348:1055) — single option, selected by default
-export function PaymentMethod({ selected, onToggle }: { selected: boolean; onToggle: () => void }) {
+export type PayMethod = 'card' | 'gcash' | 'maya' | 'qrph'
+export const PAY_LABEL: Record<PayMethod, string> = { card: 'Credit / Debit Card', gcash: 'GCash', maya: 'Maya', qrph: 'QR Ph' }
+
+// Brand marks are simple coloured monograms (official logos aren't in the Figma file).
+function Mark({ method }: { method: PayMethod }) {
+  if (method === 'card') return <img alt="" src={visaMastercard} className="size-[23.994px]" />
+  const m = {
+    gcash: { bg: '#007cff', fg: '#fff', t: 'G' },
+    maya: { bg: '#0b0b0b', fg: '#2ee98a', t: 'm' },
+    qrph: { bg: '#1f3a8a', fg: '#fff', t: 'QR' },
+  }[method]
+  return (
+    <span className="flex size-[23.994px] items-center justify-center rounded-[6px] text-[12px] leading-none font-extrabold" style={{ background: m.bg, color: m.fg }}>
+      {m.t}
+    </span>
+  )
+}
+
+const METHODS: { id: PayMethod; sub: string; tint: string }[] = [
+  { id: 'card', sub: 'Visa, Mastercard, JCB', tint: 'rgba(99,102,241,0.06)' },
+  { id: 'gcash', sub: 'Pay with your GCash wallet', tint: 'rgba(0,124,255,0.08)' },
+  { id: 'maya', sub: 'Pay with your Maya wallet', tint: 'rgba(46,233,138,0.12)' },
+  { id: 'qrph', sub: 'Scan with any banking or e-wallet app', tint: 'rgba(31,58,138,0.08)' },
+]
+
+// Figma: Payment method (node 12348:1055) — the Figma card option plus GCash, Maya and QR Ph; one selected at a time
+export function PaymentMethod({ method, onChange }: { method: PayMethod; onChange: (m: PayMethod) => void }) {
   return (
     <section className="flex flex-col gap-[12px]">
       <SectionTitle icon={<CardIcon />}>Payment method</SectionTitle>
-      <button
-        type="button"
-        role="radio"
-        aria-checked={selected}
-        onClick={onToggle}
-        className={`flex min-h-[72px] w-full flex-col justify-center rounded-[20px] border-[1.117px] p-[12px] text-left ${selected ? 'border-[#f97316] bg-[rgba(254,241,232,0.1)]' : 'border-border-default bg-white'}`}
-      >
-        <div className="flex h-[39.996px] w-full items-center gap-[11.988px]">
-          <span className="flex size-[35.983px] shrink-0 items-center justify-center rounded-16 bg-[rgba(99,102,241,0.06)]">
-            <img alt="" src={visaMastercard} className="size-[23.994px]" />
-          </span>
-          <span className="flex min-w-px flex-1 flex-col gap-[0.995px]">
-            <span className="text-[14px] leading-[21px] font-semibold whitespace-nowrap text-text-primary">Credit / Debit Card</span>
-            <span className="text-[12px] leading-[18px] whitespace-nowrap text-text-secondary">Visa, Mastercard, JCB</span>
-          </span>
-          <span className="flex h-[31.986px] w-[53.974px] shrink-0 items-center justify-end">
-            {selected ? (
-              <span className="flex size-[19.998px] items-center justify-center rounded-full bg-[#f97316]">
-                <TickWhiteIcon />
-              </span>
-            ) : (
-              <span className="size-[19.998px] rounded-full border-[1.117px] border-border-default" />
-            )}
-          </span>
-        </div>
-      </button>
+      <div role="radiogroup" aria-label="Payment method" className="flex flex-col gap-[8px]">
+        {METHODS.map(({ id, sub, tint }) => {
+          const selected = method === id
+          return (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => onChange(id)}
+              className={`flex min-h-[72px] w-full flex-col justify-center rounded-[20px] border-[1.117px] p-[12px] text-left transition-colors duration-150 ${selected ? 'border-[#f97316] bg-[rgba(254,241,232,0.1)]' : 'border-border-default bg-white'}`}
+            >
+              <div className="flex h-[39.996px] w-full items-center gap-[11.988px]">
+                <span className="flex size-[35.983px] shrink-0 items-center justify-center rounded-16" style={{ background: tint }}>
+                  <Mark method={id} />
+                </span>
+                <span className="flex min-w-px flex-1 flex-col gap-[0.995px]">
+                  <span className="text-[14px] leading-[21px] font-semibold whitespace-nowrap text-text-primary">{PAY_LABEL[id]}</span>
+                  <span className="truncate text-[12px] leading-[18px] text-text-secondary">{sub}</span>
+                </span>
+                <span className="flex h-[31.986px] w-[53.974px] shrink-0 items-center justify-end">
+                  {selected ? (
+                    <span className="flex size-[19.998px] items-center justify-center rounded-full bg-[#f97316]">
+                      <TickWhiteIcon />
+                    </span>
+                  ) : (
+                    <span className="size-[19.998px] rounded-full border-[1.117px] border-border-default" />
+                  )}
+                </span>
+              </div>
+            </button>
+          )
+        })}
+      </div>
     </section>
   )
 }

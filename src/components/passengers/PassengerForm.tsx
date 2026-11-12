@@ -2,7 +2,8 @@ import { CITIES, ID_TYPES, NATIONALITIES, PASSENGER_TYPES, ageFrom, savePassenge
 import { Chip, ComboBox, DateField, GenderToggle, SelectField, SubmitButton, TextField, UploadField } from './Fields'
 import { FormSheet } from './Sheets'
 import { showSuccess } from './Toast'
-import { MAX_NAME, NAME_RE, useForm } from './useForm'
+import SampleFill from './SampleFill'
+import { MAX_NAME, NAME_RE, SAMPLE_FILE, useForm } from './useForm'
 
 // Live SAVED_PASSENGER_FORM_SHEET ("Add Passenger" / "Edit Passenger") with its yup schema messages.
 
@@ -107,6 +108,13 @@ export default function PassengerForm({ editing, onClose }: { editing: SavedPass
   return (
     <FormSheet title={editing ? 'Edit Passenger' : 'Add Passenger'} onClose={onClose}>
       <form noValidate onSubmit={submit} className="flex flex-col gap-[16px]">
+        {!editing && (
+          <SampleFill
+            onClick={() =>
+              f.fill({ type: 'Regular', firstName: 'Juan', middleName: 'Santos', lastName: 'Dela Cruz', city: `${CITIES[0].name}, ${CITIES[0].province}`, birth: ['05', '14', '1995'], gender: 'male', nationality: 'Filipino', idType: ID_TYPES[0], idNumber: '1234-5678-9012', idFront: SAMPLE_FILE('id-front.svg'), idBack: SAMPLE_FILE('id-back.svg') })
+            }
+          />
+        )}
         <div className="flex flex-col gap-[6px]">
           <label className="mb-[8px] text-[12px] leading-[16px] text-[#8e8e93]">Passenger Type</label>
           <div className="flex flex-wrap gap-[6px]">
