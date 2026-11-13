@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import caretDown from '../../assets/figma/step-review/caret-down.svg'
 import line10 from '../../assets/figma/step-review/line-10.svg'
 import philippines from '../../assets/figma/step-review/philippines.png'
@@ -6,6 +6,8 @@ import infoNote from '../../assets/figma/confirmation/info-note.svg'
 import tick01 from '../../assets/figma/step-review/tick-01.svg'
 import visaMastercard from '../../assets/figma/step-review/visa-mastercard.svg'
 import type { PassengerDetail, VehicleDetail } from '../../booking/BookingContext'
+import { useAuth } from '../../auth/AuthContext'
+import { useProtoFlags, type ProtoFlags } from '../../proto/flags'
 import { peso, pesoTotal, type Trip } from '../../data/step-review'
 import { CardIcon, MailIcon, RouteIcon, TickWhiteIcon, UserIcon, VanIcon } from './icons'
 
@@ -207,12 +209,26 @@ export function PaymentMethod({ method, onChange }: { method: PayMethod; onChang
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 
-// Figma: Contact details (node 12348:874) — Email address (Verified) + Mobile number (PH +63)
-export function ContactDetails() {
-  const [email, setEmail] = useState('')
+// Figma: Contact details (node 12348:874) — Email address + Mobile number (PH +63).
+// The email card is Figma "StepAddOns" (user-supplied frames): Email + Confirm email, in four states —
+// default, focused (orange border), "Emails don't match" (red field + message) and Confirmed (green field + tick).
+export function ContactDetails({ onConfirmed }: { onConfirmed?: (ok: boolean) => void }) {
+  // Prototype controls can pin one of the four states; remount so the pinned state starts from its own values
+  const { emailState } = useProtoFlags()
+  return <ContactDetailsForm key={emailState} pinned={emailState} onConfirmed={onConfirmed} />
+}
+
+function ContactDetailsForm({ pinned, onConfirmed }: { pinned: ProtoFlags['emailState']; onConfirmed?: (ok: boolean) => void }) {
+  const { user } = useAuth()
+  const seed = pinned === 'auto' ? (user?.email ?? '') : pinned === 'default' || pinned === 'focus' ? '' : 'ken@email.com'
+  const [email, setEmail] = useState(seed)
+  const [confirm, setConfirm] = useState(pinned === 'mismatch' ? 'ken@emai' : seed)
+  const [confirmBlurred, setConfirmBlurred] = useState(pinned === 'mismatch')
   const [mobile, setMobile] = useState('')
-  // Figma shows the verified state (green field + tick) with the placeholder; it stays verified while the value is a valid email
-  const verified = email === '' || isEmail(email)
+  const confirmed = isEmail(email) && confirm === email
+  useEffect(() => onConfirmed?.(confirmed), [confirmed, onConfirmed])
+  const mismatch = confirm !== '' && confirm !== email && (confirmBlurred || confirm.length >= email.length)
+  const field = 'h-[52.735px] w-full overflow-clip rounded-16 border px-[12.488px] text-[15px] outline-none transition-colors duration-150 placeholder:text-text-secondary'
   return (
     <section className="flex w-full flex-col gap-[12px]">
       <div className="flex h-[19.492px] w-full items-center">
@@ -223,28 +239,49 @@ export function ContactDetails() {
         <span className="ml-[6.5px] flex h-[18.969px] items-center rounded-full bg-[rgba(249,115,22,0.1)] px-[7.99px] text-[10px] leading-[15px] font-semibold text-[#f97316]">Required</span>
       </div>
 
-      <div className="flex flex-col rounded-16 border-[0.5px] border-border-default bg-white p-[16px]">
-        <div className="flex w-full flex-col gap-[4px]">
-          <div className="flex h-[26px] w-full items-center justify-between">
-            <label htmlFor="review-email" className="text-[15px] leading-[22.5px] font-semibold text-text-primary">
-              Email address
+      <div className="flex flex-col gap-[16px] rounded-[20px] border-[0.5px] border-border-default bg-white p-[16px]">
+        <div className="flex flex-col gap-[4px]">
+          <h3 className="text-[16px] leading-[24px] font-bold text-text-primary">Email address</h3>
+          <p className="text-[13px] leading-[20px] text-[#5e5d5f]">Your boarding pass will be sent here. Type it twice so we know it’s right.</p>
+        </div>
+        <input
+          id="review-email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="e.g. johndoe@email.com"
+          aria-label="Email address"
+          className={`${field} bg-white text-text-primary focus:border-[#f97316] ${pinned === 'focus' ? 'border-[#f97316]' : 'border-border-default'}`}
+        />
+        <div className="flex flex-col gap-[8px]">
+          <div className="flex items-center justify-between">
+            <label htmlFor="review-email-confirm" className="text-[13px] leading-[20px] text-[#404040]">
+              Confirm email address
             </label>
-            {verified && <span className="text-[11px] font-medium text-[#34c759]">Verified</span>}
+            {confirmed && <span className="text-[13px] leading-[20px] font-medium text-[#34c759]">Confirmed</span>}
           </div>
-          <p className="text-[12px] leading-[19.5px] text-text-secondary">Your boarding pass and confirmation will be sent here.</p>
-          <div
-            className={`flex h-[52.735px] w-full items-center justify-between gap-[8px] overflow-clip rounded-16 border-[0.5px] px-[12.488px] py-[0.5px] ${verified ? 'border-[#34c759] bg-[#fcfffd]' : 'border-border-default bg-white'}`}
-          >
+          <div className="relative">
             <input
-              id="review-email"
+              id="review-email-confirm"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="off"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              onBlur={() => setConfirmBlurred(true)}
               placeholder="e.g. johndoe@email.com"
-              className="min-w-px flex-1 bg-transparent text-[15px] text-text-primary outline-none placeholder:text-text-secondary"
+              aria-invalid={mismatch || undefined}
+              className={`${field} ${
+                confirmed
+                  ? 'border-[#34c759] bg-[#fcfffd] pr-[44px] text-[#34c759]'
+                  : mismatch
+                    ? 'border-[#ef4444] bg-[#fdf2f1] text-text-primary'
+                    : 'border-border-default bg-white text-text-primary focus:border-[#f97316]'
+              }`}
             />
-            {verified && <img alt="" src={tick01} className="size-[24px] shrink-0" />}
+            {confirmed && <img alt="" src={tick01} className="pointer-events-none absolute top-1/2 right-[12px] size-[24px] -translate-y-1/2" />}
           </div>
+          {mismatch && <p className="text-[13px] leading-[20px] text-[#ef4444]">Emails don’t match. Check both and try again.</p>}
         </div>
       </div>
 

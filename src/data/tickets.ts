@@ -2,6 +2,8 @@ import type { BookingState, Ticket, TicketStatus as StoredStatus } from '../book
 import { addDays, formatBookingDate, parseBookingDate, startOfToday } from '../booking/date'
 import { search } from './home'
 import { departures, findDeparture, type ShippingLine } from './departures'
+import { repriced } from '../booking/flows'
+import { protoFlags } from '../proto/flags'
 import { mockPassengers, mockVehicles, SERVICE_FEE } from './step-review'
 
 // My Tickets data + the prototype's ticket lifecycle (in memory, no backend).
@@ -20,7 +22,7 @@ export const REFUND_MS = 10000
 
 /** Next stored status for a ticket at `now` (called every 500ms by BookingProvider). */
 export function advanceTicket(t: Ticket, now: number): StoredStatus {
-  const age = now - t.statusChangedAt
+  const age = (now - t.statusChangedAt) / (protoFlags().fast ? 10 : 1) // prototype controls: "Fast timers"
   switch (t.status) {
     case 'pending':
       return t.pendingUntil !== undefined && now >= t.pendingUntil ? 'expired' : 'pending'
@@ -406,6 +408,7 @@ function demoBooking(line: ShippingLine, n: number, offsetDays: number): Booking
     departureId: list[n % list.length].id,
     passengers: mockPassengers,
     vehicles: mockVehicles,
+    flow: 'standard',
   }
 }
 
@@ -459,4 +462,33 @@ export function demoTickets(which: string): TicketView[] {
     })
   }
   return which === '1' ? demoCache : demoCache.filter((t) => lineOf(t.booking) === which)
+}
+
+// ---------------------------------------------------------------- prototype controls: seeded trips
+/** A sample trip for a shipping line in any status (used by the floating Prototype controls). Vehicles only on RoRo sailings. */
+export function buildTicket(line: ShippingLine, status: StoredStatus, offsetDays: number, cancelled: string[] = []): Ticket {
+  const now = Date.now()
+  const dep = departures.filter((d) => d.line === line)[0]
+  const vehicles = dep.vesselType === 'RoRo' ? mockVehicles : []
+  const booking: BookingState = {
+    from: { code: 'DGT', city: 'Dumaguete' },
+    to: { code: 'CEB', city: 'Cebu City' },
+    date: formatBookingDate(addDays(startOfToday(), offsetDays)),
+    passengerCount: mockPassengers.length,
+    vehicleCount: vehicles.length,
+    departureId: dep.id,
+    passengers: repriced(mockPassengers, vehicles),
+    vehicles,
+    flow: 'standard',
+  }
+  return {
+    id: `TKT-P${now.toString(36).toUpperCase()}`,
+    createdAt: now,
+    booking,
+    total: moneyOf({ booking }).total,
+    status,
+    statusChangedAt: now,
+    pendingUntil: status === 'pending' ? now + PAYMENT_WINDOW_MS : undefined,
+    cancelledPassengerIds: cancelled,
+  }
 }

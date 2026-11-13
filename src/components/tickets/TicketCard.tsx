@@ -203,7 +203,7 @@ export default function TicketCard({ ticket, onDetails, onBoardingPass, onRebook
               Please wait. Your ticket is being generated.
             </Message>
           )}
-          {status === 'pending' && <Message bg="bg-[#fffbd6]" icon={<img alt="" src={receipt} className="size-5" />}>Your booking was already submitted — complete payment in to confirm your seat.</Message>}
+          {status === 'pending' && <Message bg="bg-[#fffbd6]" icon={<img alt="" src={receipt} className="size-5" />}>Your booking was already submitted — complete payment to confirm your seat.</Message>}
           {(status === 'confirmed' || status === 'completed') && <PartialBox ticket={ticket} />}
         </div>
         <div>

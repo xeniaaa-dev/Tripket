@@ -1,6 +1,7 @@
 /* oxlint-disable react/only-export-components -- context file: provider + hook + defaults */
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { advanceTicket, PAYMENT_WINDOW_MS } from '../data/tickets'
+import type { ShippingLine } from '../data/departures'
 import { formatBookingDate, startOfToday } from './date'
 
 // Shared state for the booking happy path (Home → Passengers & vehicle → Select departure → Passenger details → Review & pay).
@@ -24,6 +25,10 @@ export type BookingState = {
   /** Filled on "Passenger details" */
   passengers: PassengerDetail[]
   vehicles: VehicleDetail[]
+  /** Which booking flow is running (see booking/flows.ts): the normal 4 steps, or Rebook / Return trip / Book another trip */
+  flow: 'standard' | 'another' | 'rebook' | 'return'
+  /** Rebook keeps the original shipping line: only its sailings are offered */
+  lineLock?: ShippingLine
 }
 
 export const defaultBooking: BookingState = {
@@ -35,6 +40,7 @@ export const defaultBooking: BookingState = {
   departureId: null,
   passengers: [],
   vehicles: [],
+  flow: 'standard',
 }
 
 /** Stored ticket status (lifecycle in data/tickets.ts). "Departed" is derived from the travel date, not stored. */
@@ -64,6 +70,8 @@ type Ctx = {
   /** "Pay" → the line's paid status, 'pending' (payment left unfinished) or 'failed' (Maayo only). Returns the new ticket id. */
   addTicket: (total: number, status?: TicketStatus) => string
   updateTicket: (id: string, patch: Partial<Ticket>) => void
+  /** Prototype controls: replace every ticket */
+  seedTickets: (list: Ticket[]) => void
 }
 const BookingContext = createContext<Ctx | null>(null)
 
@@ -102,7 +110,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <BookingContext value={{ booking, update, reset: () => setBooking(defaultBooking), tickets, addTicket, updateTicket }}>{children}</BookingContext>
+    <BookingContext value={{ booking, update, reset: () => setBooking(defaultBooking), tickets, addTicket, updateTicket, seedTickets: setTickets }}>{children}</BookingContext>
   )
 }
 

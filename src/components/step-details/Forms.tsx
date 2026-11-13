@@ -221,19 +221,19 @@ export function PassengerFormSheet({ onSubmit, onClose }: { onSubmit: (p: NewPas
 export type NewVehicle = { plate: string; model: string; type: VehicleType }
 
 /** "Add vehicle" form (node 11598:42370) */
-export function VehicleFormSheet({ onSubmit, onClose }: { onSubmit: (v: NewVehicle) => void; onClose: () => void }) {
-  const [type, setType] = useState<VehicleType>('Car / Sedan')
-  const [plate, setPlate] = useState('')
-  const [make, setMake] = useState('')
+export function VehicleFormSheet({ onSubmit, onClose, initial }: { onSubmit: (v: NewVehicle) => void; onClose: () => void; /** editing a carried-over vehicle (Return trip) */ initial?: NewVehicle }) {
+  const [type, setType] = useState<VehicleType>(initial?.type ?? 'Car / Sedan')
+  const [plate, setPlate] = useState(initial?.plate ?? '')
+  const [make, setMake] = useState(initial?.model ?? '')
   const [color, setColor] = useState('')
   const [nickname, setNickname] = useState('')
   const [save, setSave] = useState(true)
 
-  const dirty = type !== 'Car / Sedan' || !save || [plate, make, color, nickname].some(Boolean)
+  const dirty = !initial && (type !== 'Car / Sedan' || !save || [plate, make, color, nickname].some(Boolean))
   const vInput = 'h-[52.626px] w-full rounded-16 border-[0.5px] border-border-default bg-white px-[12.488px] text-[15px] text-text-primary outline-none placeholder:text-text-secondary focus:border-primary-default'
 
   return (
-    <FormSheet title="Add vehicle" what="vehicle" dirty={dirty} onClose={onClose}>
+    <FormSheet title={initial ? 'Edit vehicle' : 'Add vehicle'} what="vehicle" dirty={dirty} onClose={onClose}>
       <div className="flex flex-col px-[23.998px] pb-[35px]">
         <div className="flex flex-col gap-[5.995px]">
           <p className={label}>Vehicle type</p>
@@ -314,7 +314,7 @@ export function VehicleFormSheet({ onSubmit, onClose }: { onSubmit: (v: NewVehic
           onClick={() => onSubmit({ plate: plate.trim(), model: [make.trim(), color.trim()].filter(Boolean).join(' '), type })}
           className="mt-[43px] h-[55.995px] w-full rounded-16 bg-primary-default text-[16px] leading-[24px] font-bold text-white disabled:opacity-50"
         >
-          Add vehicle
+          {initial ? 'Save changes' : 'Add vehicle'}
         </button>
       </div>
     </FormSheet>

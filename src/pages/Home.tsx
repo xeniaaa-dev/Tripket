@@ -12,6 +12,11 @@ import DateSheet from '../components/booking/DateSheet'
 import PortPicker from '../components/home/PortPicker'
 import { useAuth } from '../auth/AuthContext'
 import { useBooking } from '../booking/BookingContext'
+import { freshPatch, returnPatch } from '../booking/flows'
+import RecentTrips from '../components/home/RecentTrips'
+import ReturnTripCard from '../components/home/ReturnTripCard'
+import { useTicketActions } from '../components/tickets/useTicketActions'
+import { toView } from '../data/tickets'
 import { formatBookingDate } from '../booking/date'
 import { popularRoutes, search, today } from '../data/home'
 import { destinationPorts, portByCity, ports, recentPorts, type Port } from '../data/ports'
@@ -27,7 +32,14 @@ const toBookingPort = ({ code, city }: Port) => ({ code, city })
 export default function Home() {
   const navigate = useNavigate()
   const go = (to: string) => navigate(to, { state: PAGE_LOAD }) // live app: route loader, then the page enters
-  const { update } = useBooking()
+  const { booking, update, tickets } = useBooking()
+  const { rebook, paymentSheet } = useTicketActions()
+  // Starting a normal booking drops anything a Rebook / Return trip / Book another trip carried over
+  const fresh = booking.flow === 'standard' ? {} : freshPatch
+  // Figma entry points: "Ready to head back?" after a booked trip, "Recent Trips" for finished ones (hidden until a trip exists, like live)
+  const views = [...tickets].reverse().map(toView)
+  const lastBooked = views.find((t) => ['confirmed', 'completed', 'under_review', 'generating'].includes(t.status))
+  const recent = views.filter((t) => ['completed', 'expired', 'refunded', 'for_refund'].includes(t.status)).slice(0, 3)
   const { user } = useAuth()
   const [route, setRoute] = useState<{ from: Port | null; to: Port | null }>({
     from: search.from ? portByCity(search.from) : null,
@@ -72,7 +84,7 @@ export default function Home() {
           onSubmit={(e) => {
             e.preventDefault()
             if (!route.from || !route.to) return
-            update({ from: toBookingPort(route.from), to: toBookingPort(route.to), date: formatBookingDate(date) })
+            update({ ...fresh, from: toBookingPort(route.from), to: toBookingPort(route.to), date: formatBookingDate(date) })
             go('/book')
           }}
         >
@@ -99,6 +111,18 @@ export default function Home() {
           </div>
         </form>
 
+        {lastBooked && (
+          <ReturnTripCard
+            from={lastBooked.booking.to.code}
+            to={lastBooked.booking.from.code}
+            onBook={() => {
+              update(returnPatch(lastBooked.booking))
+              navigate('/book/return')
+            }}
+          />
+        )}
+        {recent.length > 0 && <RecentTrips trips={recent} onRebook={rebook} />}
+
         <div className="space-y-4">
           <h2 className="text-[16px] leading-[24px] font-semibold tracking-[-0.4px] text-text-primary">Popular Routes</h2>
           <div className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 [scrollbar-width:none]">
@@ -114,7 +138,7 @@ export default function Home() {
                   if (!from || !to) return
                   search.from = from.city // live fills the Home form with the tapped route
                   search.to = to.city
-                  update({ from: toBookingPort(from), to: toBookingPort(to), date: formatBookingDate(date) })
+                  update({ ...fresh, from: toBookingPort(from), to: toBookingPort(to), date: formatBookingDate(date) })
                   go('/book')
                 }}
               />
@@ -123,6 +147,7 @@ export default function Home() {
         </div>
       </div>
 
+      {paymentSheet}
       {/* live drawer sheets (each handles its own slide-in/out) */}
       <PortPicker
         open={sheet === 'origin'}

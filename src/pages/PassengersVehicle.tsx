@@ -25,7 +25,7 @@ export default function PassengersVehicle() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
-      <BookingHeader title="Passengers & vehicle" step={1} />
+      <BookingHeader title="Passengers & vehicle" screen="book" />
       <RouteBanner>
         <DateSelector />
       </RouteBanner>

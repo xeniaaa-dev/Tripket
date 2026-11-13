@@ -6,12 +6,13 @@ import OrderSummary from '../components/confirmation/OrderSummary'
 import ConfirmationView, { type Action } from '../components/tickets/ConfirmationView'
 import { useTicketActions } from '../components/tickets/useTicketActions'
 import { toView } from '../data/tickets'
+import { anotherPatch } from '../booking/flows'
 import { arrivalDayDate, dayDate, reviewData } from '../data/step-review'
 
 // Figma: "OJ - PROCESSING" (node 11598:52529) — Booking under review: payment posted, waiting for admin confirmation
 export default function BookingConfirmed() {
   const navigate = useNavigate()
-  const { booking, reset, tickets } = useBooking()
+  const { booking, reset, tickets, update } = useBooking()
   const { passengers, vehicles, trip, subtotal, serviceFee, total } = reviewData(booking)
   const leave = (to: string) => {
     reset()
@@ -21,21 +22,19 @@ export default function BookingConfirmed() {
   // ?id= → the submitted ticket: the screen follows its live status (Figma confirmation screens 11598:51228)
   const [params] = useSearchParams()
   const stored = tickets.find((t) => t.id === params.get('id'))
-  const { continuePayment, rebook, paymentSheet } = useTicketActions()
+  const { continuePayment, rebook, anotherTrip, paymentSheet } = useTicketActions()
   if (stored) {
     const ticket = toView(stored)
     const myTickets: Action = { label: 'View My Tickets', onClick: () => leave('/tickets') }
-    const another: Action = { label: 'Book another trip', onClick: () => leave('/') }
+    // Figma "Book another trip" flow: From = this trip's destination, passengers and vehicles carried over
+    const another: Action = { label: 'Book another trip', onClick: () => anotherTrip(ticket) }
     const actions: Action[] =
       ticket.status === 'pending'
         ? [{ label: 'Continue to payment', onClick: () => continuePayment(ticket) }, { ...myTickets, outline: true }]
-        : ticket.status === 'confirmed' || ticket.status === 'generating' || ticket.status === 'failed'
+        : ticket.status === 'confirmed' || ticket.status === 'generating'
           ? [another, { ...myTickets, outline: true }]
-          : ticket.status === 'expired' || ticket.status === 'completed'
-            ? [{ label: 'Book again', onClick: () => {
-                    reset()
-                    rebook(ticket)
-                  } }, { ...myTickets, outline: true }]
+          : ticket.status === 'expired' || ticket.status === 'completed' || ticket.status === 'failed'
+            ? [{ label: ticket.status === 'failed' ? 'Rebook' : 'Book again', onClick: () => rebook(ticket) }, { ...myTickets, outline: true }]
             : [myTickets, { ...another, outline: true }]
     return (
       <>
@@ -94,7 +93,7 @@ export default function BookingConfirmed() {
           <button type="button" onClick={() => leave('/tickets')} className="flex h-[56px] w-full items-center justify-center rounded-16 bg-[#f97316]">
             <span className="text-[15px] leading-[22.5px] font-bold text-white">View My Tickets</span>
           </button>
-          <button type="button" onClick={() => leave('/')} className="flex h-[56px] w-full items-center justify-center rounded-16 border-[1.5px] border-[#f97316] bg-white">
+          <button type="button" onClick={() => { update(anotherPatch(booking)); navigate('/book/another') }} className="flex h-[56px] w-full items-center justify-center rounded-16 border-[1.5px] border-[#f97316] bg-white">
             <span className="text-[15px] leading-[22.5px] font-bold text-[#f97316]">Book another trip</span>
           </button>
         </div>

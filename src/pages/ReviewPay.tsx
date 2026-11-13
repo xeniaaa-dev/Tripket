@@ -17,6 +17,8 @@ export default function ReviewPay() {
   const { passengers, vehicles, trip, subtotal, serviceFee, total } = reviewData(booking)
   const [method, setMethod] = useState<PayMethod>('card')
   const [paying, setPaying] = useState(false)
+  // Email + Confirm email must match before payment
+  const [emailOk, setEmailOk] = useState(false)
   // Pay → card payment sheet: paid → the line's first status (OceanJet processing, Maayo generating, HS confirmed);
   // closed unpaid → PENDING PAYMENT (15:00 window); Maayo only: declined → PAYMENT FAILED
   const line = lineOf(booking)
@@ -27,7 +29,7 @@ export default function ReviewPay() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
-      <BookingHeader title="Review & pay" step={4} />
+      <BookingHeader title="Review & pay" screen="review" />
       <ReviewRouteBanner departs={`Departs ${shortDate(booking.date)}`} arrives={trip.arrivalNote} />
 
       {/* "StepConfirm" (node 12348:750) */}
@@ -39,10 +41,18 @@ export default function ReviewPay() {
           <PriceSummary subtotal={subtotal} serviceFee={serviceFee} total={total} />
         </div>
         <PaymentMethod method={method} onChange={setMethod} />
-        <ContactDetails />
+        <ContactDetails onConfirmed={setEmailOk} />
       </div>
 
-      <StepFooter note={<TermsNote />} onClick={() => setPaying(true)}>
+      <StepFooter
+        note={
+          <>
+            {!emailOk && <p className="mb-[8px] text-center text-[14px] leading-[20px] text-[#f97316]">Enter and confirm your email to continue</p>}
+            <TermsNote />
+          </>
+        }
+        disabled={!emailOk}
+        onClick={() => setPaying(true)}>
         <span className="font-bold whitespace-pre">{`Pay ${pesoTotal(total)}  `}</span>
       </StepFooter>
       <PaymentSheet open={paying} method={method} total={total} line={line} onPaid={() => submit(LINES[line].paidStatus)} onFailed={() => submit('failed')} onClose={() => submit('pending')} />

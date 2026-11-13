@@ -167,7 +167,7 @@ export default function PassengerDetails() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
-      <BookingHeader title="Passenger Details" step={3} />
+      <BookingHeader title="Passenger Details" screen="details" />
       <RouteBanner variant="details" />
 
       <div className="flex flex-1 flex-col gap-[8px] px-[16px] pt-[8px] pb-[16px]">
@@ -189,6 +189,9 @@ export default function PassengerDetails() {
           // Filled layout (node 11598:42951): header → free banner → cards
           <section className="flex flex-col">
             <SectionHeader icon={<UserSecondary />}>Passenger · {passengerCount}</SectionHeader>
+            {booking.flow === 'another' && (
+              <p className="mt-[6px] text-[11px] leading-[16.5px] text-[#8e8e93]">Passengers from your previous booking are pre-filled. Add or remove as needed.</p>
+            )}
             {freeCount > 0 && (
               <div className="mt-[8px]">
                 <FreeBanner />

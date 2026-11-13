@@ -25,19 +25,19 @@ function OperatorLogo({ src, fit = 'cover' }: { src: string; fit?: Departure['lo
 }
 
 // Live departure row: logo tile, operator + badge, times + duration, date line; price on the right. Data/wording is ours.
-export default function DepartureButton({ departure: d, selected, last, onSelect }: { departure: Departure; selected: boolean; last: boolean; onSelect: () => void }) {
+export default function DepartureButton({ departure: d, selected, first, last, onSelect }: { departure: Departure; selected: boolean; first: boolean; last: boolean; onSelect: () => void }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onSelect}
-      className={`flex w-full items-center gap-[10px] px-[12px] py-[12px] text-left ${selected ? 'bg-[#fff3e7]' : 'bg-white'} ${last ? '' : 'border-b border-[#e5e5e5]'}`}
+      className={`flex w-full items-center gap-[10px] px-[12px] py-[12px] text-left ${selected ? `relative z-10 rounded-16 bg-[#fff3e7] shadow-[inset_0_0_0_1px_#fdba74] ${first ? '' : '-mt-px pt-[13px]'} ${last ? '' : 'pb-[13px]'}` : `bg-white ${last ? '' : 'border-b border-[#e5e5e5]'}`}`}
     >
       <OperatorLogo src={d.logo} fit={d.logoFit} />
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="flex h-[20px] items-center gap-[8px]">
           <span className="text-[14px] leading-[20px] whitespace-nowrap text-[#1e293b]">{d.operator}</span>
-          <span className="rounded-full bg-[#f0fdf4] px-[8px] text-[12px] leading-[18px] whitespace-nowrap text-[#16a34a]">{d.vesselType}</span>
+          <span className={`rounded-full px-[8px] text-[12px] leading-[18px] whitespace-nowrap ${d.vesselType === 'Fast Craft' ? 'bg-[rgba(0,122,255,0.08)] text-[#007aff]' : 'bg-[#f0fdf4] text-[#16a34a]'}`}>{d.vesselType}</span>
         </span>
         <span className="flex h-[24px] items-center gap-[4px] whitespace-nowrap">
           <span className="text-[16px] leading-[24px] font-semibold text-[#0f172a]">{d.departTime}</span>
@@ -50,7 +50,7 @@ export default function DepartureButton({ departure: d, selected, last, onSelect
       <span className="flex shrink-0 flex-col items-end self-start pt-[0.5px]">
         <span className="text-[16px] leading-[24px] font-extrabold whitespace-nowrap text-[#0f172a]">{peso(d.price)}</span>
         <span className="text-[12px] leading-[16px] whitespace-nowrap text-[#94a3b8]">/ person</span>
-        {selected && <span className="mt-[8px] text-[14px] leading-[21px] font-semibold text-primary-default">Selected</span>}
+        {selected && <span className="mt-[2px] text-[14px] leading-[18px] font-semibold text-primary-default">Selected</span>}
       </span>
     </button>
   )

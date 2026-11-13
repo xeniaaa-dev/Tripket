@@ -19,10 +19,18 @@ import TabsLayout from './components/TabsLayout.tsx'
 import PassengerDetails from './pages/PassengerDetails.tsx'
 import PassengersVehicle from './pages/PassengersVehicle.tsx'
 import ReviewPay from './pages/ReviewPay.tsx'
+import PrototypeControls from './components/PrototypeControls'
+import ConnectivityToast from './components/ConnectivityToast'
+import Maintenance from './pages/Maintenance'
+import NotFound from './pages/NotFound'
+import SessionExpired from './pages/SessionExpired'
+import { useProtoFlags } from './proto/flags'
+import AnotherTrip from './pages/AnotherTrip'
+import ReturnTrip from './pages/ReturnTrip'
 import SelectDeparture from './pages/SelectDeparture.tsx'
 
 // New screen → top of the page.
-function Layout() {
+function LayoutBody() {
   const { pathname, state, key } = useLocation()
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -42,6 +50,17 @@ function Layout() {
     <div key={pathname} className={`min-h-dvh ${state?.pageEnter ? 'animate-page-enter' : ''}`}>
       <Outlet />
     </div>
+  )
+}
+
+function Layout() {
+  const { maintenance } = useProtoFlags()
+  return (
+    <>
+      {maintenance ? <Maintenance /> : <LayoutBody />}
+      <ConnectivityToast />
+      <PrototypeControls />
+    </>
   )
 }
 
@@ -65,10 +84,14 @@ const router = createBrowserRouter([
       { path: '/privacy', element: <Legal kind="privacy" /> },
       { path: '/terms', element: <Legal kind="terms" /> },
       { path: '/book', element: <PassengersVehicle /> },
+      { path: '/book/another', element: <AnotherTrip /> },
+      { path: '/book/return', element: <ReturnTrip /> },
       { path: '/book/departure', element: <SelectDeparture /> },
       { path: '/book/details', element: <PassengerDetails /> },
       { path: '/book/review', element: <ReviewPay /> },
       { path: '/book/confirmed', element: <BookingConfirmed /> },
+      { path: '/session-expired', element: <SessionExpired /> },
+      { path: '*', element: <NotFound /> },
     ],
   },
 ])

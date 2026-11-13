@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import chevronLeft from '../../assets/live/booking/chevron-left.svg'
 import chevronRight from '../../assets/live/booking/chevron-right.svg'
 import close from '../../assets/live/booking/close.svg'
@@ -25,24 +25,37 @@ export default function DateSheet({
   today,
   onSelect,
   onClose,
+  title = 'Select Travel Date',
+  summary,
+  confirm,
 }: {
   open: boolean
   value: Date
   today: Date
   onSelect: (d: Date) => void
   onClose: () => void
+  /** sheet heading (default "Select Travel Date") */
+  title?: string
+  /** content under the heading, e.g. the trip being rebooked */
+  summary?: ReactNode
+  /** Rebook / Return: picking a day only highlights it; this button (disabled until a day is picked) confirms. `onSelect` then fires on confirm. */
+  confirm?: { idle: string; label: (d: Date) => string; minDate?: Date }
 }) {
+  const [picked, setPicked] = useState<Date | null>(null)
   const [month, setMonth] = useState(() => new Date(value.getFullYear(), value.getMonth(), 1))
   const [prevOpen, setPrevOpen] = useState(open)
   if (open !== prevOpen) {
     setPrevOpen(open)
-    if (open) setMonth(new Date(value.getFullYear(), value.getMonth(), 1)) // reopen on the selected date's month
+    if (open) {
+      setMonth(new Date(value.getFullYear(), value.getMonth(), 1)) // reopen on the selected date's month
+      setPicked(null)
+    }
   }
   const atCurrentMonth = month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth()
   const shift = (n: number) => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + n, 1))
 
   return (
-    <Drawer open={open} onClose={onClose} label="Select Travel Date">
+    <Drawer open={open} onClose={onClose} label={title}>
       <div className="flex justify-center pb-[8px]">
         <span className="h-[4px] w-[36px] rounded-[2px] bg-[#e4e4e7]" />
       </div>
@@ -55,8 +68,9 @@ export default function DateSheet({
         <img alt="" src={close} className="size-[16px]" />
       </button>
       <div className="border-b border-[#f1f5f9] pb-[16px]">
-        <h2 className="text-[20px] leading-[28px] font-bold text-[#1e293b]">Select Travel Date</h2>
+        <h2 className="text-[20px] leading-[28px] font-bold text-[#1e293b]">{title}</h2>
       </div>
+      {summary && <div className="mt-[16px]">{summary}</div>}
 
       <div className="mt-[8px] -mx-[3px]">
         <header className="flex items-center justify-between border-b border-[#f5f5f5] px-[2px] pb-[16px]">
@@ -90,8 +104,9 @@ export default function DateSheet({
               <tr key={i}>
                 {week.map((d) => {
                   const outside = d.getMonth() !== month.getMonth()
-                  const past = d < today
-                  const selected = !outside && sameDay(d, value)
+                  const past = d < (confirm?.minDate ?? today)
+                  const current = confirm ? picked : value
+                  const selected = !outside && !!current && sameDay(d, current)
                   const disabled = outside || past
                   return (
                     <td key={d.getTime()} className="p-0">
@@ -99,7 +114,7 @@ export default function DateSheet({
                         type="button"
                         disabled={disabled}
                         aria-pressed={selected}
-                        onClick={() => onSelect(d)}
+                        onClick={() => (confirm ? setPicked(d) : onSelect(d))}
                         className={`mx-auto flex size-[50px] items-center justify-center rounded-full text-[14px] leading-[20px] font-medium transition-transform duration-250 ease-[cubic-bezier(0,0,0.2,1)] active:scale-95 ${
                           selected ? 'bg-[#ff6b00] text-white' : ''
                         } ${disabled ? 'opacity-50' : ''} ${past && !outside ? 'line-through' : ''}`}
@@ -114,6 +129,16 @@ export default function DateSheet({
           </tbody>
         </table>
       </div>
+      {confirm && (
+        <button
+          type="button"
+          disabled={!picked}
+          onClick={() => picked && onSelect(picked)}
+          className="mt-[16px] flex h-[56px] w-full shrink-0 items-center justify-center rounded-16 bg-[#f97316] text-[16px] leading-[24px] font-bold text-white transition-opacity disabled:opacity-50"
+        >
+          {picked ? confirm.label(picked) : confirm.idle}
+        </button>
+      )}
     </Drawer>
   )
 }

@@ -1,0 +1,13 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="car-01">
+<path id="Vector" d="M1.25 6L2.25 6.5" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" stroke="#A8A29E"/>
+<path id="Vector_2" d="M10.75 6.25L9.75 6.5" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" stroke="#A8A29E"/>
+<path id="Vector_3" d="M4 8.75L4.12284 8.4429C4.30551 7.98625 4.39684 7.7579 4.58731 7.62895C4.77777 7.5 5.0237 7.5 5.51555 7.5H6.48445C6.9763 7.5 7.22225 7.5 7.4127 7.62895C7.60315 7.7579 7.6945 7.98625 7.87715 8.4429L8 8.75" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" stroke="#A8A29E"/>
+<path id="Vector_4" d="M1 8.5V9.941C1 10.1303 1.12038 10.3035 1.31094 10.3882C1.43459 10.4431 1.55269 10.5 1.69529 10.5H2.55471C2.69731 10.5 2.81541 10.4431 2.93906 10.3882C3.12962 10.3035 3.25 10.1303 3.25 9.941V9" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" stroke="#A8A29E"/>
+<path id="Vector_5" d="M8.75 9V9.941C8.75 10.1303 8.8704 10.3035 9.06095 10.3882C9.1846 10.4431 9.3027 10.5 9.4453 10.5H10.3047C10.4473 10.5 10.5654 10.4431 10.689 10.3882C10.8796 10.3035 11 10.1303 11 9.941V8.5" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" stroke="#A8A29E"/>
+<path id="Vector_6" d="M10 4.25L10.5 4" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" stroke="#A8A29E"/>
+<path id="Vector_7" d="M2 4.25L1.5 4" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" stroke="#A8A29E"/>
+<path id="Vector_8" d="M2.25 4.5L2.79415 2.86754C3.01416 2.20752 3.12416 1.87752 3.38605 1.68876C3.64793 1.5 3.9958 1.5 4.69152 1.5H7.3085C8.0042 1.5 8.35205 1.5 8.61395 1.68876C8.87585 1.87752 8.98585 2.20752 9.20585 2.86754L9.75 4.5" stroke-width="0.75" stroke-linejoin="round" stroke="#A8A29E"/>
+<path id="Vector_9" d="M2.25 4.5H9.75C10.2286 5.00675 11 5.71245 11 6.4998V8.2351C11 8.52035 10.8103 8.7604 10.5584 8.79375L9 9H3L1.44158 8.79375C1.18978 8.7604 1 8.52035 1 8.2351V6.4998C1 5.71245 1.77139 5.00675 2.25 4.5Z" stroke-width="0.75" stroke-linejoin="round" stroke="#A8A29E"/>
+</g>
+</svg>

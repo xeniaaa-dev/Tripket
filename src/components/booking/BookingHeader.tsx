@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { useBooking } from '../../booking/BookingContext'
+import { FLOW_SCREENS, prevPath, stepOf, type Screen } from '../../booking/flows'
 
-export const TOTAL_STEPS = 4 // live flow (book.tripket.ph) has 4 steps; Figma labels say "of 5" because of a removed Add-ons step
+// Live flow (book.tripket.ph) has 4 steps (Figma labels say "of 5" because of a removed Add-ons step); Rebook has 2, Return trip 3.
 
 // Live app (book.tripket.ph): fluid header — 32px back button at y=24, 18px title, 3px progress segments with a "n of 4" label, 1px bottom border.
 // Moving forward one step fills the new segment 0 → 100% (500ms, ease-in-out). Entering step 1 or going back doesn't animate.
 let lastStep = 0
-const STEP_PATHS = ['/book', '/book/departure', '/book/details']
 
-export default function BookingHeader({ title, step, onBack }: { title: string; step: number; onBack?: () => void }) {
+export default function BookingHeader({ title, screen, onBack }: { title: string; screen: Screen; onBack?: () => void }) {
   const navigate = useNavigate()
+  const { flow } = useBooking().booking
+  const step = stepOf(flow, screen)
+  const total = FLOW_SCREENS[flow].length
   // Live: all booking steps are one page, so browser Back leaves the booking; the header Back steps back one screen
   // (replacing history, not adding to it), and Back on step 1 returns to Home.
   const goBack = () => {
-    const prev = STEP_PATHS[step - 2]
+    const prev = prevPath(flow, screen)
     if (prev) navigate(prev, { replace: true })
     else if ((window.history.state?.idx ?? 0) > 0) navigate(-1)
     else navigate('/', { replace: true })
@@ -39,7 +43,7 @@ export default function BookingHeader({ title, step, onBack }: { title: string; 
       </div>
       <div className="mt-[12px] flex h-[15px] items-center gap-[8px]">
         <div className="flex flex-1 items-center gap-[8px]">
-          {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+          {Array.from({ length: total }, (_, i) => (
             <span key={i} className="h-[3px] flex-1 overflow-hidden rounded-full bg-[#e5e5ea]">
               {i < step && (
                 <span
@@ -51,7 +55,7 @@ export default function BookingHeader({ title, step, onBack }: { title: string; 
           ))}
         </div>
         <p className="text-[10px] leading-[15px] text-[#8e8e93]">
-          {step} of {TOTAL_STEPS}
+          {step} of {total}
         </p>
       </div>
     </div>

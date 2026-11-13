@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Drawer from '../Drawer'
 import close from '../../assets/live/tickets/close.svg'
 import { pesoTotal } from '../../data/step-review'
+import { protoFlags, setProtoFlag } from '../../proto/flags'
 import { PAY_LABEL, type PayMethod } from '../step-review/ReviewSections'
 import type { ShippingLine } from '../../data/tickets'
 
@@ -49,7 +50,10 @@ export default function PaymentSheet({ open, method = 'card', total, line, onPai
     setPaying(true)
     timer.current = setTimeout(() => {
       setPaying(false)
-      if (decline && onFailed) onFailed()
+      // "Next payment fails" from the Prototype controls behaves like the checkbox below (Maayo only), then switches itself off
+      const forced = line === 'maayo' && protoFlags().declineNext
+      if (forced) setProtoFlag('declineNext', false)
+      if ((decline || forced) && onFailed) onFailed()
       else onPaid()
     }, 1200)
   }
