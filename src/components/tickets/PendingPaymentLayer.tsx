@@ -34,7 +34,7 @@ export default function PendingPaymentLayer() {
   return (
     <>
       {pending && (
-        <div className="fixed bottom-[82px] left-1/2 z-30 w-[357px] -translate-x-1/2">
+        <div className="fixed bottom-[82px] left-1/2 z-30 w-[min(calc(100vw-32px),480px)] -translate-x-1/2">
           <button
             type="button"
             onClick={() => continuePayment(toView(pending))}
@@ -51,7 +51,7 @@ export default function PendingPaymentLayer() {
               </span>
               <span className="h-[15px] text-[12px] font-medium whitespace-nowrap text-[#5e5d5f]">{tripOf(pending).short}</span>
             </span>
-            <span className="absolute top-[calc(50%-8.2px)] left-[277px] font-mono text-[20px] leading-[19.5px] font-medium whitespace-nowrap text-[#ef4444]">
+            <span className="absolute top-[calc(50%-8.2px)] right-[16px] font-mono text-[20px] leading-[19.5px] font-medium whitespace-nowrap text-[#ef4444]">
               {mmss((pending.pendingUntil ?? now) - now)}
             </span>
           </button>

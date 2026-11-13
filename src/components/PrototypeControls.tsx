@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { defaultBooking, useBooking, type Ticket } from '../booking/BookingContext'
@@ -81,6 +81,52 @@ const Chips = ({ items }: { items: [string, string, () => void, boolean?, boolea
 )
 
 
+/** Drag handle for the floating controls: returns the current offset + pointer handlers; `moved()` tells a drag from a click. */
+function useDrag() {
+  const [off, setOff] = useState({ x: 0, y: 0 })
+  const ref = useRef<HTMLElement | null>(null)
+  const drag = useRef<{ sx: number; sy: number; ox: number; oy: number; dist: number } | null>(null)
+  const handlers = {
+    onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
+      if ((e.target as HTMLElement).closest('[data-nodrag]')) return
+      e.currentTarget.setPointerCapture(e.pointerId)
+      drag.current = { sx: e.clientX, sy: e.clientY, ox: off.x, oy: off.y, dist: 0 }
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLElement>) => {
+      const d = drag.current
+      if (!d) return
+      const dx = e.clientX - d.sx
+      const dy = e.clientY - d.sy
+      d.dist = Math.max(d.dist, Math.abs(dx) + Math.abs(dy))
+      let x = d.ox + dx
+      let y = d.oy + dy
+      // keep the element on screen
+      const r = ref.current?.getBoundingClientRect()
+      if (r) {
+        const cx = Math.min(Math.max(r.left + (x - off.x), 4), window.innerWidth - r.width - 4) - r.left - (x - off.x)
+        const cy = Math.min(Math.max(r.top + (y - off.y), 4), window.innerHeight - r.height - 4) - r.top - (y - off.y)
+        x += cx
+        y += cy
+      }
+      setOff({ x, y })
+    },
+    onPointerUp: () => {
+      // let the click handler read `dist` first
+      setTimeout(() => (drag.current = null), 0)
+    },
+  }
+  const moved = () => (drag.current?.dist ?? 0) > 4
+  /** Pull the element back on screen (the panel is taller than the chip). */
+  const clamp = () => {
+    const r = ref.current?.getBoundingClientRect()
+    if (!r) return
+    const dx = Math.min(Math.max(r.left, 4), Math.max(window.innerWidth - r.width - 4, 4)) - r.left
+    const dy = Math.min(Math.max(r.top, 4), Math.max(window.innerHeight - r.height - 4, 4)) - r.top
+    if (dx || dy) setOff((o) => ({ x: o.x + dx, y: o.y + dy }))
+  }
+  return { off, ref, handlers, moved, clamp }
+}
+
 export default function PrototypeControls() {
   const navigate = useNavigate()
   const { user, signIn, signOut } = useAuth()
@@ -88,6 +134,9 @@ export default function PrototypeControls() {
   const { rebook, paymentSheet } = useTicketActions()
   const flags = useProtoFlags()
   const [open, setOpen] = useState(false)
+  const { off, ref, handlers, moved, clamp } = useDrag()
+  useLayoutEffect(clamp, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  const place = { translate: `${off.x}px ${off.y}px` }
   const [tab, setTab] = useState<Tab>('state')
   const [line, setLine] = useState<ShippingLine>('oceanjet')
 
@@ -224,8 +273,11 @@ export default function PrototypeControls() {
           type="button"
           aria-expanded={false}
           aria-label="Open prototype controls"
-          onClick={() => setOpen(true)}
-          className="fixed right-[12px] bottom-[24px] z-[60] flex h-[34px] items-center gap-[6px] rounded-full border border-dashed border-[#c9c9ce] bg-white/95 px-[12px] text-[12px] font-bold text-[#1c1917] shadow-[0_4px_14px_rgba(0,0,0,0.12)] backdrop-blur max-[560px]:bottom-[84px]"
+          ref={(el) => void (ref.current = el)}
+          {...handlers}
+          style={{ ...place, touchAction: 'none' }}
+          onClick={() => !moved() && setOpen(true)}
+          className="fixed right-[12px] bottom-[24px] cursor-grab select-none active:cursor-grabbing z-[60] flex h-[34px] items-center gap-[6px] rounded-full border border-dashed border-[#c9c9ce] bg-white/95 px-[12px] text-[12px] font-bold text-[#1c1917] shadow-[0_4px_14px_rgba(0,0,0,0.12)] backdrop-blur max-[560px]:bottom-[84px]"
         >
           <Icon d={ICON.wrench} />
           {stateLabel}
@@ -234,14 +286,16 @@ export default function PrototypeControls() {
       {open && (
         <aside
           aria-label="Prototype controls"
+          ref={(el) => void (ref.current = el)}
+          style={place}
           className="fixed right-[12px] bottom-[12px] z-[60] flex max-h-[calc(100dvh-24px)] w-[360px] max-w-[calc(100vw-24px)] flex-col rounded-[20px] border border-[#e5e5ea] bg-white p-[14px] shadow-[0_12px_40px_rgba(0,0,0,0.2)]"
         >
-          <header className="flex items-start justify-between gap-[8px] px-[4px] pb-[10px]">
+          <header {...handlers} style={{ touchAction: 'none' }} className="flex cursor-grab items-start justify-between gap-[8px] px-[4px] pb-[10px] select-none active:cursor-grabbing">
             <div>
               <p className="text-[11px] leading-[16px] font-semibold tracking-[0.8px] text-[#6b6b70] uppercase">Prototype controls</p>
               <p className="text-[14px] leading-[20px] font-bold text-[#1c1917]">{stateLabel}</p>
             </div>
-            <button type="button" aria-label="Close prototype controls" onClick={() => setOpen(false)} className="flex size-[32px] items-center justify-center rounded-full bg-[#f1f1f4] text-[#5e5d5f]">
+            <button type="button" data-nodrag aria-label="Close prototype controls" onClick={() => setOpen(false)} className="flex size-[32px] items-center justify-center rounded-full bg-[#f1f1f4] text-[#5e5d5f]">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
                 <path d="m6 6 12 12M18 6 6 18" />
               </svg>
