@@ -5,7 +5,7 @@ import { Notification01 } from './icons'
 // Live (book.tripket.ph) Home header: logo + wordmark (19px semibold), settings gear in a 42px frosted circle.
 // Guest = settings gear only. Signed in = notification bell (red unread badge, per the Figma signed-in header) + the same settings gear
 // (Tripket only knows the user's email, so no initials avatar).
-export default function Header({ onAccount, signedIn, notifications = 3 }: { onAccount?: () => void; signedIn?: boolean; notifications?: number }) {
+export default function Header({ onAccount, onNotifications, signedIn, notifications = 0 }: { onAccount?: () => void; onNotifications?: () => void; signedIn?: boolean; notifications?: number }) {
   const gear = (
     <button type="button" aria-label="Settings" onClick={onAccount} className="flex size-[42px] items-center justify-center rounded-full bg-white/80 backdrop-blur-md">
       <img alt="" src={settingsGear} className="size-[22px]" />
@@ -21,10 +21,10 @@ export default function Header({ onAccount, signedIn, notifications = 3 }: { onA
       </div>
       {signedIn ? (
         <div className="flex items-center gap-[8px]">
-          {/* shortcut: no notifications screen is designed yet, so the bell has no action */}
           <button
             type="button"
             aria-label={`Notifications, ${notifications} unread`}
+            onClick={onNotifications}
             className="relative flex size-[42px] items-center justify-center rounded-full bg-white/80 backdrop-blur-md"
           >
             <Notification01 />

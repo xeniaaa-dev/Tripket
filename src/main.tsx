@@ -24,6 +24,7 @@ import ConnectivityToast from './components/ConnectivityToast'
 import { Toaster } from './components/passengers/Toast'
 import Maintenance from './pages/Maintenance'
 import NotFound from './pages/NotFound'
+import Notifications from './pages/Notifications'
 import SessionExpired from './pages/SessionExpired'
 import { useProtoFlags } from './proto/flags'
 import AnotherTrip from './pages/AnotherTrip'
@@ -84,6 +85,7 @@ const router = createBrowserRouter([
       },
       { path: '/login/*', element: <Login /> },
       // live: Privacy Policy and Terms of Service are their own pages (full screen, no tab bar)
+      { path: '/notifications', element: <Notifications /> },
       { path: '/privacy', element: <Legal kind="privacy" /> },
       { path: '/terms', element: <Legal kind="terms" /> },
       { path: '/book', element: <PassengersVehicle /> },

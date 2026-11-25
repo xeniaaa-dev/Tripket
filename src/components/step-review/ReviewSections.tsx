@@ -11,7 +11,8 @@ import { useProtoFlags, voucherDemo, type ProtoFlags } from '../../proto/flags'
 import { Link } from 'react-router'
 import type { ShippingLine } from '../../data/departures'
 import { POLICY, VOUCHERS, type VoucherCheck } from '../../data/policy'
-import { Glyph, IconRow, RowCard, SectionLabel } from '../confirmation/IconRows'
+import { Glyph, IconRow, RowCard } from '../confirmation/IconRows'
+import BottomSheet from '../step-details/BottomSheet'
 import { peso, pesoTotal, SERVICE_FEE, type Trip } from '../../data/step-review'
 import { CardIcon, MailIcon, RouteIcon, TickWhiteIcon, UserIcon, VanIcon } from './icons'
 
@@ -442,15 +443,16 @@ function ContactDetailsForm({ pinned, onConfirmed }: { pinned: ProtoFlags['email
   )
 }
 
-/** Terms line above the Pay button (node 12348:957) */
-// Inline agreement (no extra modal): completing the booking is the consent.
-export const TermsNote = ({ operator }: { operator?: string }) => (
+/**
+ * Terms note (Figma node 12348:957), above Passengers, styled like the terminal-fee note.
+ * The operator policy no longer has its own section: the note shows its key point (free cancellation cutoff) in one line,
+ * and "booking policy" opens the full policy (cancellation, refund, baggage, check-in) in a bottom sheet.
+ * Inline agreement (no extra modal): completing the booking is the consent.
+ */
+/** Terms line above the Pay button (Figma node 12348:957, user's screenshot) */
+export const FooterTerms = () => (
   <p className="mb-[16px] text-center text-[11.5px] leading-[17px] text-[#6c6c70]">
-    By completing this booking, you agree to {operator ? `${operator}’s` : 'the operator’s'}{' '}
-    <button type="button" onClick={() => document.getElementById('operator-policy')?.scrollIntoView({ behavior: 'smooth', block: 'center' })} className="inline font-semibold text-[#f97316] underline">
-      booking policy
-    </button>
-    , our{' '}
+    By continuing, you agree to our{' '}
     <Link to="/terms" className="font-semibold text-[#f97316] underline">
       Terms of Service
     </Link>{' '}
@@ -462,19 +464,37 @@ export const TermsNote = ({ operator }: { operator?: string }) => (
   </p>
 )
 
-// Operator terms on Review & pay: cancellation cutoff, refunds, baggage, check-in — specific to the shipping line being booked.
 const POLICY_ICONS = { cancellation: 'calendarX', refund: 'refund', baggage: 'bag', checkin: 'clock' } as const
 
-export function OperatorPolicy({ line, operator }: { line: ShippingLine; operator: string }) {
+export function TermsNote({ line, operator }: { line: ShippingLine; operator: string }) {
+  const [open, setOpen] = useState(false)
   const policy = POLICY[line]
   return (
-    <section id="operator-policy" className="flex w-full scroll-mt-[16px] flex-col gap-[12px]">
-      <SectionLabel icon="ticket">{operator} policy</SectionLabel>
-      <RowCard>
-        {(Object.keys(POLICY_ICONS) as (keyof typeof POLICY_ICONS)[]).map((k) => (
-          <IconRow key={k} icon={POLICY_ICONS[k]} title={policy[k].title} detail={policy[k].detail} />
-        ))}
-      </RowCard>
-    </section>
+    <>
+      <div className="flex w-full items-start gap-[10px] rounded-16 bg-[#f8f8fa] px-[16px] py-[12px]">
+        <img alt="" src={infoNote} className="mt-px size-[15px]" />
+        <p className="flex-1 text-[11px] leading-[15.95px] text-[#5e5d5f]">
+          <span className="font-semibold text-[#1c1917]">
+            {policy.cancellation.title} {policy.cancellation.detail.charAt(0).toLowerCase() + policy.cancellation.detail.slice(1)}.
+          </span>{' '}
+          Booking policies vary by shipping line. By proceeding with this booking, you acknowledge and agree to{' '}
+          <button type="button" onClick={() => setOpen(true)} className="inline font-semibold text-[#f97316]">
+            {operator}’s Booking Policy
+          </button>
+          .
+        </p>
+      </div>
+      {open && (
+        <BottomSheet title={`${operator} Booking Policy`} onClose={() => setOpen(false)} maxHeight="auto">
+          <div className="px-[16px] pb-[32px]">
+            <RowCard>
+              {(Object.keys(POLICY_ICONS) as (keyof typeof POLICY_ICONS)[]).map((k) => (
+                <IconRow key={k} icon={POLICY_ICONS[k]} title={policy[k].title} detail={policy[k].detail} />
+              ))}
+            </RowCard>
+          </div>
+        </BottomSheet>
+      )}
+    </>
   )
 }

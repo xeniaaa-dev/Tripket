@@ -18,6 +18,7 @@ import ReturnTripCard from '../components/home/ReturnTripCard'
 import { useTicketActions } from '../components/tickets/useTicketActions'
 import { toView } from '../data/tickets'
 import { formatBookingDate } from '../booking/date'
+import { useNotifications } from '../data/notifications'
 import { popularRoutes, search, today } from '../data/home'
 import { destinationPorts, portByCity, ports, recentPorts, type Port } from '../data/ports'
 
@@ -31,6 +32,7 @@ const toBookingPort = ({ code, city }: Port) => ({ code, city })
 // Figma: "Tripket - Signed in" (Home - With all sections, node 11598:49149)
 export default function Home() {
   const navigate = useNavigate()
+  const unread = useNotifications().filter((n) => !n.read).length
   const go = (to: string) => navigate(to, { state: PAGE_LOAD }) // live app: route loader, then the page enters
   const { booking, update, tickets } = useBooking()
   const { rebook, paymentSheet } = useTicketActions()
@@ -67,7 +69,7 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 space-y-4 px-6 pt-3">
-        <Header onAccount={() => navigate('/account')} signedIn={!!user} />
+        <Header onAccount={() => navigate('/account')} onNotifications={() => navigate('/notifications')} notifications={unread} signedIn={!!user} />
 
         <header className="pt-3 pb-2">
           <h1 className="text-[30px] leading-none font-semibold tracking-[-0.75px] text-slate-900">Where to</h1>

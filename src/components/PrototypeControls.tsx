@@ -2,10 +2,12 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { showSuccess } from './passengers/Toast'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
+import { setLastSignIn } from '../auth/lastMethod'
 import { defaultBooking, useBooking, type Ticket } from '../booking/BookingContext'
 import { addDays, formatBookingDate, parseBookingDate, startOfToday } from '../booking/date'
 import { anotherPatch, freshPatch, returnPatch } from '../booking/flows'
 import { departures } from '../data/departures'
+import { resetNotifications } from '../data/notifications'
 import { buildTicket, LINES, lineOf, moneyOf, PAYMENT_WINDOW_MS, STATUS, toView, type ShippingLine, type TicketStatus } from '../data/tickets'
 import { setProtoFlag, useProtoFlags, voucherDemo } from '../proto/flags'
 import { useTicketActions } from './tickets/useTicketActions'
@@ -500,9 +502,16 @@ export default function PrototypeControls() {
       { title: 'Offline toast', run: () => playOffline() },
     ]],
     ['Account', [
-      { title: 'Login', run: () => go('/login') },
+      { title: 'Login', run: () => (signOut(), setLastSignIn(null), go('/login')) },
+      // signed out, returning user: their last sign-in method is tagged "Last used"
+      { title: 'Login · last used Google', run: () => (signOut(), setLastSignIn({ method: 'google', email: 'juan.delacruz@gmail.com' }), go('/login')) },
+      { title: 'Login · last used Apple', run: () => (signOut(), setLastSignIn({ method: 'apple', email: 'juan.delacruz@icloud.com' }), go('/login')) },
+      { title: 'Login · last used Facebook', run: () => (signOut(), setLastSignIn({ method: 'facebook', email: 'juan.delacruz@yahoo.com' }), go('/login')) },
+      { title: 'Login · last used Email', run: () => (signOut(), setLastSignIn({ method: 'email', email: 'juan.delacruz@gmail.com' }), go('/login')) },
       // signs in as Juan, lands on Home and shows the toast the real login shows
       { title: 'Logged in · welcome toast', hint: 'Welcome, juan.delacruz@gmail.com!', run: () => (signIn('juan.delacruz@gmail.com'), go('/'), setTimeout(() => showSuccess('Welcome, juan.delacruz@gmail.com! You\'re logged in.'), 400)) },
+      { title: 'Notifications', run: () => (signIn('juan.delacruz@gmail.com'), resetNotifications(), go('/notifications')) },
+      { title: 'Notifications · empty', run: () => (signIn('juan.delacruz@gmail.com'), resetNotifications(true), go('/notifications')) },
       { title: 'Privacy policy', run: () => go('/privacy') },
       { title: 'Terms of service', run: () => go('/terms') },
     ]],

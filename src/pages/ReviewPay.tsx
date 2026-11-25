@@ -5,7 +5,7 @@ import BookingHeader from '../components/booking/BookingHeader'
 import StepFooter from '../components/booking/StepFooter'
 import PaymentSheet from '../components/tickets/PaymentSheet'
 import ReviewRouteBanner from '../components/step-review/ReviewRouteBanner'
-import { ContactDetails, PassengersSection, OperatorPolicy, PaymentMethod, type PayMethod, PriceSummary, TermsNote, TripDetails, VehiclesSection, VoucherField } from '../components/step-review/ReviewSections'
+import { ContactDetails, PassengersSection, PaymentMethod, type PayMethod, PriceSummary, FooterTerms, TermsNote, TripDetails, VehiclesSection, VoucherField } from '../components/step-review/ReviewSections'
 import { pesoTotal, reviewData, SERVICE_FEE, shortDate } from '../data/step-review'
 import { LINES, lineOf } from '../data/tickets'
 import { checkVoucher, VOUCHERS } from '../data/policy'
@@ -48,6 +48,7 @@ export default function ReviewPay() {
       {/* "StepConfirm" (node 12348:750) */}
       <div className="flex flex-1 flex-col gap-[20px] px-[16px] pt-[16px] pb-[16px]">
         <TripDetails trip={trip} />
+        <TermsNote line={line} operator={LINES[line].name} />
         <div className="flex w-full flex-col gap-[8px]">
           <PassengersSection passengers={passengers} />
           {vehicles.length > 0 && <VehiclesSection vehicles={vehicles} />}
@@ -67,7 +68,6 @@ export default function ReviewPay() {
           />
           <PriceSummary subtotal={subtotal} serviceFee={serviceFee} discount={discount} voucher={voucher} total={total} />
         </div>
-        <OperatorPolicy line={line} operator={LINES[line].name} />
         <PaymentMethod method={method} onChange={setMethod} />
         <ContactDetails onConfirmed={setEmailOk} />
       </div>
@@ -76,7 +76,7 @@ export default function ReviewPay() {
         note={
           <>
             {!emailOk && <p className="mb-[8px] text-center text-[14px] leading-[20px] text-[#f97316]">Enter and confirm your email to continue</p>}
-            <TermsNote operator={LINES[line].name} />
+            <FooterTerms />
           </>
         }
         disabled={!emailOk}

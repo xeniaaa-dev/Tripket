@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } 
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../../../auth/AuthContext'
 import { showSuccess } from '../../passengers/Toast'
+import { setLastSignIn } from '../../../auth/lastMethod'
 import { loginDraft } from './draft'
 import Step from './Step'
 
@@ -59,6 +60,7 @@ export default function VerifyStep() {
   }
   const verify = () => {
     if (WRONG.includes(code)) return setError(true)
+    setLastSignIn({ method: 'email', email: email.trim() })
     signIn(email) // LoginRoutes redirects a signed-in user back to `from` (or Home)
     showSuccess(`Welcome, ${email.trim()}! You're logged in.`)
   }
