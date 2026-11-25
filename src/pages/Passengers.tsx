@@ -8,7 +8,7 @@ import { PlusIcon } from '../components/passengers/icons'
 import PassengerForm from '../components/passengers/PassengerForm'
 import { PassengerRow, VehicleRow } from '../components/passengers/ProfileRows'
 import { ActionSheet, ConfirmDeleteSheet } from '../components/passengers/Sheets'
-import { Toaster, showSuccess } from '../components/passengers/Toast'
+import { showSuccess } from '../components/passengers/Toast'
 import VehicleForm from '../components/passengers/VehicleForm'
 import { fullName, removePassenger, removeVehicle, useSaved } from '../data/passengers'
 
@@ -176,7 +176,6 @@ export default function Passengers() {
           />
         )}
       </SheetPresence>
-      <Toaster />
     </div>
   )
 }

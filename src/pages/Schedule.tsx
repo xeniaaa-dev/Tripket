@@ -136,7 +136,6 @@ export default function Schedule() {
           })}
         </div>
 
-        <div className="mx-[20px] border-t border-[#e5e5e5]" />
         <div className="flex items-center gap-[10px] px-[20px] py-[14px]">
           <button
             type="button"

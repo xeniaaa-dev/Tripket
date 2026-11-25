@@ -19,9 +19,9 @@ export default function ScheduleRow({ d, now, onBook, rowRef }: { d: Departure; 
   const body = (
     <>
       <div className="w-[88px] shrink-0">
-        <p className="flex items-baseline gap-[4px] text-[#1c1917]">
-          <span className={`text-[24px] leading-[30px] tracking-[-0.5px] ${off ? 'font-normal' : 'font-bold'} ${d.cancelled ? 'text-[#a1a1a1] line-through' : ''}`}>{time}</span>
-          <span className={`text-[11px] leading-[14px] ${off ? 'font-normal text-[#5e5d5f]' : 'font-bold'}`}>{ampm}</span>
+        <p className={`flex items-baseline gap-[4px] ${off ? 'text-[#48484a]' : 'text-[#1c1917]'}`}>
+          <span className={`text-[24px] leading-[30px] tracking-[-0.5px] ${off ? 'font-normal' : 'font-bold'} ${d.cancelled ? 'line-through' : ''}`}>{time}</span>
+          <span className={`text-[11px] leading-[14px] ${off ? 'font-normal' : 'font-bold'}`}>{ampm}</span>
         </p>
         <p className="mt-[2px] text-[11px] leading-[14px] text-[#8e8e93]">{shortHours(d.duration)}</p>
       </div>
@@ -29,11 +29,11 @@ export default function ScheduleRow({ d, now, onBook, rowRef }: { d: Departure; 
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-[8px]">
           <img alt="" src={d.operator.logo} className="size-[22px] shrink-0 rounded-[6px] border border-[#ececec] bg-white object-contain p-[1px]" />
-          <span className="truncate text-[13px] leading-[18px] font-medium text-[#5e5d5f]">{d.operator.name}</span>
+          <span className={`truncate text-[13px] leading-[18px] font-medium ${off ? 'text-[#6c6c70]' : 'text-[#48484a]'}`}>{d.operator.name}</span>
         </p>
-        <p className="mt-[4px] truncate text-[15px] leading-[20px] text-[#57534e]">{portName(d.origin.name)}</p>
-        <p className="truncate text-[15px] leading-[20px] text-[#1c1917]">
-          <span className="text-[#a1a1a1]">to </span>
+        <p className={`mt-[4px] truncate text-[15px] leading-[20px] ${off ? 'text-[#6c6c70]' : 'text-[#48484a]'}`}>{portName(d.origin.name)}</p>
+        <p className={`truncate text-[15px] leading-[20px] ${off ? 'text-[#48484a]' : 'text-[#1c1917]'}`}>
+          <span className="text-[#8e8e93]">to </span>
           {portName(d.destination.name)}
         </p>
       </div>
@@ -42,7 +42,7 @@ export default function ScheduleRow({ d, now, onBook, rowRef }: { d: Departure; 
         {d.cancelled ? (
           <span className="text-[12px] leading-[18px] font-semibold text-[#dc2626]">Cancelled</span>
         ) : departed ? (
-          <span className="text-[12px] leading-[18px] text-[#8e8e93]">Departed</span>
+          <span className="text-[12px] leading-[18px] text-[#6c6c70]">Departed</span>
         ) : (
           <>
             <span className="text-[16px] leading-[20px] font-bold text-[#1c1917]">₱{fareOf(d.operator.line)}</span>
@@ -59,7 +59,7 @@ export default function ScheduleRow({ d, now, onBook, rowRef }: { d: Departure; 
   const cls = 'flex w-full items-start gap-[12px] px-[16px] py-[14px] text-left'
   if (off)
     return (
-      <div ref={rowRef} className={`${cls} bg-white`}>
+      <div ref={rowRef} className={`${cls} bg-[#fafafa]`}>
         {body}
       </div>
     )

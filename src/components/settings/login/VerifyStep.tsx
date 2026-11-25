@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../../../auth/AuthContext'
+import { showSuccess } from '../../passengers/Toast'
 import { loginDraft } from './draft'
 import Step from './Step'
 
@@ -59,6 +60,7 @@ export default function VerifyStep() {
   const verify = () => {
     if (WRONG.includes(code)) return setError(true)
     signIn(email) // LoginRoutes redirects a signed-in user back to `from` (or Home)
+    showSuccess(`Welcome, ${email.trim()}! You're logged in.`)
   }
 
   return (

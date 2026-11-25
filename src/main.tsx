@@ -21,6 +21,7 @@ import PassengersVehicle from './pages/PassengersVehicle.tsx'
 import ReviewPay from './pages/ReviewPay.tsx'
 import PrototypeControls from './components/PrototypeControls'
 import ConnectivityToast from './components/ConnectivityToast'
+import { Toaster } from './components/passengers/Toast'
 import Maintenance from './pages/Maintenance'
 import NotFound from './pages/NotFound'
 import SessionExpired from './pages/SessionExpired'
@@ -59,6 +60,8 @@ function Layout() {
     <>
       {maintenance ? <Maintenance /> : <LayoutBody />}
       <ConnectivityToast />
+      {/* app-wide success toast (saved passenger, welcome after login, …) */}
+      <Toaster />
       <PrototypeControls />
     </>
   )

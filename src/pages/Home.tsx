@@ -67,7 +67,7 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 space-y-4 px-6 pt-3">
-        <Header onAccount={() => navigate('/account')} initials={user?.initials} />
+        <Header onAccount={() => navigate('/account')} signedIn={!!user} />
 
         <header className="pt-3 pb-2">
           <h1 className="text-[30px] leading-none font-semibold tracking-[-0.75px] text-slate-900">Where to</h1>

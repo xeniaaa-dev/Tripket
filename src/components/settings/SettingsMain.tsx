@@ -51,7 +51,8 @@ function Guest({ onContact }: { onContact: () => void }) {
         </div>
 
         <div className="overflow-hidden rounded-16 border border-[#f5f5f5] p-[4px]">
-          <SettingsRow icon={<SignInIcon />} title="Sign in" subtitle="Sign in to your account" onClick={() => navigate('/login', { state: { from: '/account' } })} />
+          {/* after signing in → Home */}
+          <SettingsRow icon={<SignInIcon />} title="Sign in" subtitle="Sign in to your account" onClick={() => navigate('/login')} />
         </div>
 
         <Footer />
@@ -77,6 +78,7 @@ function FigmaRow({ icon, title, subtitle, onClick, className = '' }: { icon: Re
 function SignedIn({ onContact }: { onContact: () => void }) {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
+  const [confirmOut, setConfirmOut] = useState(false)
   const card = 'overflow-hidden rounded-16 border-[0.5px] border-border-default bg-white'
   return (
     <div className="relative mx-auto min-h-dvh max-w-lg bg-white pb-[120px] select-none">
@@ -88,10 +90,13 @@ function SignedIn({ onContact }: { onContact: () => void }) {
       </header>
       <div className="flex flex-col gap-[12px] px-[20px] pt-[12px]">
         <div className="flex items-center gap-[14px] rounded-16 bg-[#f8f8fa] p-[16px]">
-          <div className="flex size-[44px] shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-primary-default to-primary-dark text-[16px] leading-[24px] font-bold text-white">{user?.initials[0]}</div>
+          {/* Tripket only knows the email: mail icon instead of initials, email instead of a name */}
+          <div className="flex size-[44px] shrink-0 items-center justify-center rounded-full bg-[#fff7ed] text-[#f97316]">
+            <MailIcon />
+          </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] leading-[20px] font-medium text-text-primary">{user?.name}</p>
-            <p className="truncate text-[12px] leading-[18px] text-text-secondary">{user?.email}</p>
+            <p className="truncate text-[15px] leading-[20px] font-medium text-text-primary">{user?.email}</p>
+            <p className="truncate text-[12px] leading-[18px] text-text-secondary">Signed in with email</p>
           </div>
           <span className="shrink-0 rounded-full bg-border-subtle px-[8px] py-[2px] text-[10px] leading-[15px] font-semibold tracking-[0.25px] text-text-secondary uppercase">Email</span>
         </div>
@@ -104,7 +109,7 @@ function SignedIn({ onContact }: { onContact: () => void }) {
           <FigmaRow icon={<TermsIcon />} title="Terms of Service" subtitle="Usage terms" onClick={() => navigate('/terms')} />
           <FigmaRow icon={<MailIcon />} title="Contact support" subtitle="Get help" onClick={onContact} />
         </div>
-        <button type="button" onClick={signOut} className="flex h-[72px] items-center gap-[16px] rounded-16 bg-[#f8f8fa] px-[16px] text-left">
+        <button type="button" onClick={() => setConfirmOut(true)} className="flex h-[72px] items-center gap-[16px] rounded-16 bg-[#f8f8fa] px-[16px] text-left">
           <span className="flex size-[40px] shrink-0 items-center justify-center rounded-[20px] bg-[#ff3b30]/10 text-[#ff3b30]">
             <SignOutIcon size={18} />
           </span>
@@ -115,6 +120,37 @@ function SignedIn({ onContact }: { onContact: () => void }) {
         </button>
         <Footer />
       </div>
+      {confirmOut && (
+        // same modal style as "Payment Window Expired"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(120,120,120,0.35)] backdrop-blur-[6px]" onClick={() => setConfirmOut(false)}>
+          <div
+            role="alertdialog"
+            aria-label="Sign out"
+            onClick={(e) => e.stopPropagation()}
+            className="animate-pop-up flex w-[307px] flex-col items-center rounded-12 bg-white p-[16px] shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
+          >
+            <span className="flex size-[52px] items-center justify-center rounded-full bg-[#ff3b30]/10 text-[#ff3b30]">
+              <SignOutIcon size={24} />
+            </span>
+            <h2 className="mt-[16px] text-[17px] font-semibold text-[#1c1917]">Sign out?</h2>
+            <p className="mt-[8px] text-center text-[13px] leading-[20px] text-[#5e5d5f]">Are you sure you want to sign out? You can sign back in anytime with your email.</p>
+            <button
+              type="button"
+              onClick={() => (setConfirmOut(false), signOut())}
+              className="mt-[24px] flex h-[52px] w-full items-center justify-center rounded-12 bg-[#ff3b30] text-[15px] font-semibold text-white transition-transform active:scale-[0.98]"
+            >
+              Sign out
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmOut(false)}
+              className="mt-[12px] flex h-[52px] w-full items-center justify-center rounded-12 border border-[#f97316] bg-white text-[15px] font-semibold text-[#f97316]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

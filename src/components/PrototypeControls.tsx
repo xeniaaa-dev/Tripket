@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { showSuccess } from './passengers/Toast'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { defaultBooking, useBooking, type Ticket } from '../booking/BookingContext'
@@ -500,6 +501,8 @@ export default function PrototypeControls() {
     ]],
     ['Account', [
       { title: 'Login', run: () => go('/login') },
+      // signs in as Juan, lands on Home and shows the toast the real login shows
+      { title: 'Logged in · welcome toast', hint: 'Welcome, juan.delacruz@gmail.com!', run: () => (signIn('juan.delacruz@gmail.com'), go('/'), setTimeout(() => showSuccess('Welcome, juan.delacruz@gmail.com! You\'re logged in.'), 400)) },
       { title: 'Privacy policy', run: () => go('/privacy') },
       { title: 'Terms of service', run: () => go('/terms') },
     ]],

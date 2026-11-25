@@ -3,8 +3,14 @@ import settingsGear from '../assets/live/settings-gear.svg'
 import { Notification01 } from './icons'
 
 // Live (book.tripket.ph) Home header: logo + wordmark (19px semibold), settings gear in a 42px frosted circle.
-// Guest = settings gear only. Signed in = notification bell (red unread badge, per the Figma signed-in header) + gradient avatar with initials.
-export default function Header({ onAccount, initials, notifications = 3 }: { onAccount?: () => void; initials?: string; notifications?: number }) {
+// Guest = settings gear only. Signed in = notification bell (red unread badge, per the Figma signed-in header) + the same settings gear
+// (Tripket only knows the user's email, so no initials avatar).
+export default function Header({ onAccount, signedIn, notifications = 3 }: { onAccount?: () => void; signedIn?: boolean; notifications?: number }) {
+  const gear = (
+    <button type="button" aria-label="Settings" onClick={onAccount} className="flex size-[42px] items-center justify-center rounded-full bg-white/80 backdrop-blur-md">
+      <img alt="" src={settingsGear} className="size-[22px]" />
+    </button>
+  )
   return (
     <div className="flex items-center justify-between pt-4">
       <div className="relative z-20 flex items-center gap-1 text-text-primary">
@@ -13,7 +19,7 @@ export default function Header({ onAccount, initials, notifications = 3 }: { onA
           Tripket<span className="ml-1 text-[#ff6b00]">PH</span>
         </span>
       </div>
-      {initials ? (
+      {signedIn ? (
         <div className="flex items-center gap-[8px]">
           {/* shortcut: no notifications screen is designed yet, so the bell has no action */}
           <button
@@ -28,24 +34,10 @@ export default function Header({ onAccount, initials, notifications = 3 }: { onA
               </span>
             )}
           </button>
-          <button
-            type="button"
-            aria-label="Account"
-            onClick={onAccount}
-            className="bg-primary-gradient flex size-[42px] items-center justify-center rounded-full text-[16px] font-semibold text-white shadow-avatar"
-          >
-            {initials}
-          </button>
+          {gear}
         </div>
       ) : (
-        <button
-          type="button"
-          aria-label="Settings"
-          onClick={onAccount}
-          className="flex size-[42px] items-center justify-center rounded-full bg-white/80 backdrop-blur-md"
-        >
-          <img alt="" src={settingsGear} className="size-[22px]" />
-        </button>
+        gear
       )}
     </div>
   )

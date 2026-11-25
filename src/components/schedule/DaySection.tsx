@@ -44,7 +44,7 @@ export default function DaySection({ day, filter, now, onTotal, onBook, nextId, 
       <div className="pb-[16px]">
         {loading && <TicketSkeletonList count={2} />}
         {!loading && all.length > 0 && (
-          <div className="divide-y divide-[#ececec] overflow-hidden rounded-[16px] border border-[#e5e5e5] bg-white">
+          <div className="divide-y divide-[#f2f2f7] overflow-hidden rounded-[16px] border border-[#e5e5ea] bg-white">
             {all.map((d) => (
               <ScheduleRow key={d.id} d={d} now={now} onBook={onBook} rowRef={d.id === nextId ? nextRef : undefined} />
             ))}
