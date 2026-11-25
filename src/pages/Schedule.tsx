@@ -67,7 +67,7 @@ export default function Schedule() {
   const book = (d: Departure) => {
     const port = (name: string) => ({ code: portInitial(name), city: portName(name) })
     const id = scheduleDeparture({ id: d.id, line: d.operator.line, departure: d.departure, hours: d.duration })
-    update({ ...freshPatch, from: port(d.origin.name), to: port(d.destination.name), date: formatBookingDate(d.departure), scheduleTrip: id, departureId: id })
+    update({ ...freshPatch, flow: 'schedule', from: port(d.origin.name), to: port(d.destination.name), date: formatBookingDate(d.departure), scheduleTrip: id, departureId: id })
     navigate('/book', { state: PAGE_LOAD })
   }
 

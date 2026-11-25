@@ -26,7 +26,7 @@ export type BookingState = {
   passengers: PassengerDetail[]
   vehicles: VehicleDetail[]
   /** Which booking flow is running (see booking/flows.ts): the normal 4 steps, or Rebook / Return trip / Book another trip */
-  flow: 'standard' | 'another' | 'rebook' | 'return'
+  flow: 'standard' | 'another' | 'rebook' | 'return' | 'schedule'
   /** Rebook keeps the original shipping line: only its sailings are offered */
   lineLock?: ShippingLine
   /** Voucher applied to this booking (see data/policy.ts), e.g. the return-trip zero service fee */

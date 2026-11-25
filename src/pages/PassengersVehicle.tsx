@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useBooking } from '../booking/BookingContext'
+import { nextPath } from '../booking/flows'
 import BookingHeader from '../components/booking/BookingHeader'
 import DateSelector from '../components/booking/DateSelector'
 import RouteBanner from '../components/booking/RouteBanner'
@@ -45,7 +46,9 @@ export default function PassengersVehicle() {
         </div>
       </section>
       <div className="flex-1" />
-      <StepFooter onClick={() => navigate('/book/departure', { replace: true })}>Next: Select departure</StepFooter>
+      <StepFooter onClick={() => navigate(nextPath(booking.flow, 'book') ?? '/book/departure', { replace: true })}>
+        {booking.flow === 'schedule' ? 'Next: Passenger details' : 'Next: Select departure'}
+      </StepFooter>
       <VehicleTypeSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}

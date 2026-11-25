@@ -16,6 +16,8 @@ export const FLOW_SCREENS: Record<Flow, Screen[]> = {
   another: ['another', 'departure', 'details', 'review'],
   rebook: ['departure', 'review'],
   return: ['return', 'departure', 'review'],
+  // tapped a sailing on the Schedule tab: the departure is already chosen, so Select departure is skipped
+  schedule: ['book', 'details', 'review'],
 }
 
 export const SCREEN_PATH: Record<Screen, string> = {
