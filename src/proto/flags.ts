@@ -7,6 +7,8 @@ export type ProtoFlags = {
   fast: boolean
   /** the next Maayo card payment is declined → Payment Failed (resets after use) */
   declineNext: boolean
+  /** the next Pay with a limited voucher finds them all claimed → "Voucher no longer available" (resets after use) */
+  vouchersGone: boolean
   /** Figma "You're offline" toast (back online → "Back online") */
   offline: boolean
   /** whole app shows the Figma Maintenance Screen */
@@ -15,8 +17,11 @@ export type ProtoFlags = {
   emailState: 'auto' | 'default' | 'focus' | 'mismatch' | 'confirmed'
 }
 
-let flags: ProtoFlags = { fast: false, declineNext: false, offline: false, maintenance: false, emailState: 'auto' }
+let flags: ProtoFlags = { fast: false, declineNext: false, vouchersGone: false, offline: false, maintenance: false, emailState: 'auto' }
 const listeners = new Set<() => void>()
+
+/** Prototype controls → Voucher states: Review & pay registers these while it's open (type + Apply a code / show "no longer available"). */
+export const voucherDemo: { apply?: (code: string) => void; clear?: () => void; gone?: () => void } = {}
 
 export const protoFlags = () => flags
 export function setProtoFlag<K extends keyof ProtoFlags>(key: K, value: ProtoFlags[K]) {

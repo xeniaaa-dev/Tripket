@@ -4,7 +4,7 @@ import { search } from './home'
 import { departures, findDeparture, type ShippingLine } from './departures'
 import { repriced } from '../booking/flows'
 import { protoFlags } from '../proto/flags'
-import { mockPassengers, mockVehicles, SERVICE_FEE } from './step-review'
+import { mockPassengers, mockVehicles, priceOf } from './step-review'
 
 // My Tickets data + the prototype's ticket lifecycle (in memory, no backend).
 // Card styles from the live app (book.tripket.ph/tickets STATUS_CONFIG); status labels, copy and the extra states
@@ -268,11 +268,18 @@ export function tripOf(t: { booking: BookingState }) {
   }
 }
 
+/**
+ * Vouchers are only used once payment completes: an expired or failed (unpaid) booking shows the full price, no voucher.
+ * Pending payment still shows it (that's the amount due); every paid status shows it.
+ */
+export const pricedBooking = (t: { booking: BookingState; status?: string }): BookingState =>
+  t.status === 'expired' || t.status === 'failed' ? { ...t.booking, voucher: undefined } : t.booking
+
 /** Paid amounts for a ticket (same maths as Review & pay). */
-export function moneyOf(t: { booking: BookingState }) {
+export function moneyOf(t: { booking: BookingState; status?: string }) {
   const { passengers, vehicles } = t.booking
   const subtotal = passengers.reduce((s, p) => s + (p.fare ?? 0), 0) + vehicles.reduce((s, v) => s + v.fare, 0)
-  return { subtotal, serviceFee: SERVICE_FEE, total: subtotal + SERVICE_FEE }
+  return priceOf(pricedBooking(t), subtotal)
 }
 
 /** Partial cancellation counts (Figma 11598:49042 / 11598:49136) */

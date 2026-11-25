@@ -1,4 +1,5 @@
 import RouteChip from './RouteChip'
+import { OPERATORS, type ShippingLine } from '../data/departures'
 
 export type PopularRoute = {
   /** Chip labels as on live */
@@ -12,6 +13,29 @@ export type PopularRoute = {
   price: string
   duration: string
   image: string
+  /** operators sailing this route: logos top-right of the card */
+  lines?: ShippingLine[]
+}
+
+/** Operator logos, top-right: small white circles, overlapping when more than one; 3 max, then "+N" */
+function OperatorLogos({ lines }: { lines: ShippingLine[] }) {
+  const shown = lines.length > 3 ? lines.slice(0, 2) : lines
+  const more = lines.length - shown.length
+  return (
+    <span className="flex items-center" aria-label={`Operated by ${lines.map((l) => OPERATORS[l].operator).join(', ')}`}>
+      {shown.map((l, i) => {
+        const o = OPERATORS[l]
+        return (
+          <span key={l} className={`relative flex size-[32px] items-center justify-center overflow-hidden rounded-full bg-white ring-[1.5px] ring-white shadow-[0_1px_3px_rgba(0,0,0,0.25)] ${i > 0 ? '-ml-[10px]' : ''}`}>
+            <img alt="" src={o.logo} className={`size-full max-w-none ${o.logoFit === 'inset' ? 'object-contain p-[4px]' : 'object-cover'}`} />
+          </span>
+        )
+      })}
+      {more > 0 && (
+        <span className="relative -ml-[10px] flex size-[32px] items-center justify-center rounded-full bg-white text-[11px] font-bold text-[#1c1917] ring-[1.5px] ring-white shadow-[0_1px_3px_rgba(0,0,0,0.25)]">+{more}</span>
+      )}
+    </span>
+  )
 }
 
 // Live Popular Routes card: 45% of the column wide, 2:3, radius 24, photo + black gradient, chip top-left, text bottom.
@@ -27,6 +51,11 @@ export default function PopularRouteCard({ route, onSelect }: { route: PopularRo
       <span className="absolute top-3 left-3">
         <RouteChip from={route.from} to={route.to} />
       </span>
+      {route.lines && route.lines.length > 0 && (
+        <span className="absolute top-3 right-3">
+          <OperatorLogos lines={route.lines} />
+        </span>
+      )}
       <span className="absolute right-3 bottom-3 left-3 flex flex-col gap-2 text-white">
         <span>
           <span className="block text-[16px] leading-tight font-bold">{route.name}</span>

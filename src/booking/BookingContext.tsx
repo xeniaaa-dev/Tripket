@@ -29,6 +29,10 @@ export type BookingState = {
   flow: 'standard' | 'another' | 'rebook' | 'return'
   /** Rebook keeps the original shipping line: only its sailings are offered */
   lineLock?: ShippingLine
+  /** Voucher applied to this booking (see data/policy.ts), e.g. the return-trip zero service fee */
+  voucher?: string
+  /** sailing picked on the Schedule tab (see scheduleDeparture): listed first on Select departure */
+  scheduleTrip?: string
 }
 
 export const defaultBooking: BookingState = {

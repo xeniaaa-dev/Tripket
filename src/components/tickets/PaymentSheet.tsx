@@ -11,7 +11,21 @@ import type { ShippingLine } from '../../data/tickets'
 // unpaid → PENDING PAYMENT with a 15:00 window (Figma "Pending Payment Flow", 11598:56447).
 // Uses the live drawer chrome; the loading copy "Processing Payment..." is the live app's payment loader text.
 
-type Props = { open: boolean; method?: PayMethod; total: number; line?: ShippingLine; onPaid: () => void; onFailed?: () => void; onClose: () => void }
+type Props = {
+  open: boolean
+  method?: PayMethod
+  total: number
+  line?: ShippingLine
+  onPaid: () => void
+  onFailed?: () => void
+  onClose: () => void
+  /** a first-come-first-served voucher is applied (Review & pay) */
+  limitedVoucher?: boolean
+  /** payment found every voucher already claimed → nothing charged; this sheet shows the failed screen and the page drops the voucher */
+  onVoucherGone?: () => void
+  /** "Try another voucher": close without leaving a pending booking */
+  onBack?: () => void
+}
 
 const Field = ({ label, value, className = '' }: { label: string; value: string; className?: string }) => (
   <div className={`flex flex-col gap-[2px] rounded-12 border border-border-default px-[12px] py-[8px] ${className}`}>
@@ -41,15 +55,28 @@ function FakeQr() {
   )
 }
 
-export default function PaymentSheet({ open, method = 'card', total, line, onPaid, onFailed, onClose }: Props) {
+export default function PaymentSheet({ open, method = 'card', total, line, onPaid, onFailed, onClose, limitedVoucher, onVoucherGone, onBack }: Props) {
   const [paying, setPaying] = useState(false)
+  // Voucher claimed by others before this payment went through → failed screen in the sheet
+  const [claimed, setClaimed] = useState(false)
   const [decline, setDecline] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(timer.current), [])
+  const back = () => {
+    setClaimed(false)
+    ;(onBack ?? onClose)()
+  }
   const pay = () => {
     setPaying(true)
     timer.current = setTimeout(() => {
       setPaying(false)
+      // "Vouchers run out at checkout" (Prototype controls): vouchers go to whoever completes payment first
+      if (limitedVoucher && protoFlags().vouchersGone) {
+        setProtoFlag('vouchersGone', false)
+        setClaimed(true)
+        onVoucherGone?.()
+        return
+      }
       // "Next payment fails" from the Prototype controls behaves like the checkbox below (Maayo only), then switches itself off
       const forced = line === 'maayo' && protoFlags().declineNext
       if (forced) setProtoFlag('declineNext', false)
@@ -59,7 +86,37 @@ export default function PaymentSheet({ open, method = 'card', total, line, onPai
   }
 
   return (
-    <Drawer open={open} onClose={() => !paying && onClose()} label={`${PAY_LABEL[method]} payment`}>
+    <Drawer open={open} onClose={() => !paying && (claimed ? back() : onClose())} label={`${PAY_LABEL[method]} payment`}>
+      {claimed ? (
+        <div className="flex flex-col items-center pt-[8px] text-center">
+          <span className="flex size-[56px] items-center justify-center rounded-full bg-[#fef2f2]">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7.5v5.5M12 16.5h.01" />
+            </svg>
+          </span>
+          <h2 className="mt-[16px] text-[20px] leading-[28px] font-bold text-text-primary">Payment didn’t go through</h2>
+          <p className="mt-[6px] text-[14px] leading-[21px] text-[#5e5d5f]">
+            <span className="font-semibold text-text-primary">Voucher no longer available.</span> All vouchers were claimed before you completed checkout. They go to whoever pays first.
+          </p>
+          <p className="mt-[8px] text-[13px] leading-[19px] text-[#16a34a]">You haven’t been charged. Your booking details are kept.</p>
+          <div className="mt-[20px] flex w-full items-center justify-between rounded-16 bg-[#f8f8fa] px-[16px] py-[12px]">
+            <span className="text-[13px] text-text-secondary">New total without voucher</span>
+            <span className="text-[20px] font-bold text-[#f97316]">{pesoTotal(total)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => (setClaimed(false), pay())}
+            className="mt-[16px] flex h-[56px] w-full items-center justify-center rounded-16 bg-[#f97316] text-[15px] font-bold text-white transition-transform active:scale-[0.98]"
+          >
+            Pay {pesoTotal(total)} without voucher
+          </button>
+          <button type="button" onClick={back} className="mt-[8px] flex h-[48px] w-full items-center justify-center rounded-16 border-[1.5px] border-[#f97316] text-[15px] font-bold text-[#f97316]">
+            Try another voucher
+          </button>
+        </div>
+      ) : (
+      <>
       <div className="flex items-center justify-between pb-[16px]">
         <h2 className="text-[18px] font-bold tracking-[-0.3px] text-text-primary">{method === 'card' ? 'Card payment' : `Pay with ${PAY_LABEL[method]}`}</h2>
         <button type="button" aria-label="Close payment" onClick={() => !paying && onClose()} className="flex size-8 items-center justify-center rounded-full bg-neutral-100">
@@ -110,6 +167,8 @@ export default function PaymentSheet({ open, method = 'card', total, line, onPai
           {paying ? 'Processing Payment...' : method === 'qrph' ? `I've paid ${pesoTotal(total)}` : `Pay ${pesoTotal(total)}`}
         </button>
       </div>
+      </>
+      )}
     </Drawer>
   )
 }

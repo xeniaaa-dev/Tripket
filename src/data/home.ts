@@ -11,9 +11,9 @@ export const search = { from: '', to: '', date: startOfToday() }
 /** "Today" is the real current date, as on the live app (past days are disabled in the calendars). */
 export const today = startOfToday()
 
-// fromCode/toCode map live's ports onto the ports of this prototype
+// fromCode/toCode map live's ports onto the ports of this prototype; lines = operators on the route (placeholder, not from live)
 export const popularRoutes: PopularRoute[] = [
-  { from: 'DUM', to: 'SIQ', fromCode: 'DGT', toCode: 'LRN', name: 'Siquijor', landmark: 'Paliton Beach, Cambugahay Falls', price: 'from ₱120.00', duration: '~1h 15m', image: siquijor },
-  { from: 'SIB', to: 'LIL', fromCode: 'SBL', toCode: 'LLN', name: 'Cebu', landmark: 'Mactan, Cebu', price: 'from ₱175.00', duration: '~40m', image: cebu },
-  { from: 'DUM', to: 'TAG', fromCode: 'DGT', toCode: 'TAG', name: 'Bohol', landmark: 'Chocolate Hills', price: 'from ₱990.00', duration: '~2h 30m', image: bohol },
+  { from: 'DUM', to: 'SIQ', fromCode: 'DGT', toCode: 'LRN', name: 'Siquijor', landmark: 'Paliton Beach, Cambugahay Falls', price: 'from ₱120.00', duration: '~1h 15m', image: siquijor, lines: ['oceanjet', 'maayo'] },
+  { from: 'SIB', to: 'LIL', fromCode: 'SBL', toCode: 'LLN', name: 'Cebu', landmark: 'Mactan, Cebu', price: 'from ₱175.00', duration: '~40m', image: cebu, lines: ['maayo', 'hsmarine'] },
+  { from: 'DUM', to: 'TAG', fromCode: 'DGT', toCode: 'TAG', name: 'Bohol', landmark: 'Chocolate Hills', price: 'from ₱990.00', duration: '~2h 30m', image: bohol, lines: ['oceanjet'] },
 ]

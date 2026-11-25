@@ -25,6 +25,7 @@ function OperatorLogo({ src, fit = 'cover' }: { src: string; fit?: Departure['lo
 }
 
 // Live departure row: logo tile, operator + badge, times + duration, date line; price on the right. Data/wording is ours.
+// Per-person fare on the right (Figma); the all-in estimated total pops up above the Next button once a departure is picked.
 export default function DepartureButton({ departure: d, selected, first, last, onSelect }: { departure: Departure; selected: boolean; first: boolean; last: boolean; onSelect: () => void }) {
   return (
     <button

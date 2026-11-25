@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import caretDown from '../../assets/figma/step-review/caret-down.svg'
 import line10 from '../../assets/figma/step-review/line-10.svg'
 import philippines from '../../assets/figma/step-review/philippines.png'
@@ -7,8 +7,12 @@ import tick01 from '../../assets/figma/step-review/tick-01.svg'
 import visaMastercard from '../../assets/figma/step-review/visa-mastercard.svg'
 import type { PassengerDetail, VehicleDetail } from '../../booking/BookingContext'
 import { useAuth } from '../../auth/AuthContext'
-import { useProtoFlags, type ProtoFlags } from '../../proto/flags'
-import { peso, pesoTotal, type Trip } from '../../data/step-review'
+import { useProtoFlags, voucherDemo, type ProtoFlags } from '../../proto/flags'
+import { Link } from 'react-router'
+import type { ShippingLine } from '../../data/departures'
+import { POLICY, VOUCHERS, type VoucherCheck } from '../../data/policy'
+import { Glyph, IconRow, RowCard, SectionLabel } from '../confirmation/IconRows'
+import { peso, pesoTotal, SERVICE_FEE, type Trip } from '../../data/step-review'
 import { CardIcon, MailIcon, RouteIcon, TickWhiteIcon, UserIcon, VanIcon } from './icons'
 
 /** Section title row: 16px icon + 13px medium label (Trip details / Payment method / Contact details) */
@@ -107,16 +111,34 @@ export function VehiclesSection({ vehicles }: { vehicles: VehicleDetail[] }) {
 }
 
 /** Subtotal / Service Fee / Total rows (shared with the confirmation screen) */
-export function PriceRows({ subtotal, serviceFee, total, totalLabel }: { subtotal: number; serviceFee: number; total: number; totalLabel: string }) {
+export type PriceProps = { subtotal: number; serviceFee: number; total: number; discount?: number; voucher?: string }
+export function PriceRows({ subtotal, serviceFee, total, discount = 0, voucher, totalLabel }: PriceProps & { totalLabel: string }) {
   return (
     <>
       <div className="flex w-full items-center justify-between text-[14px] leading-[21px] whitespace-nowrap">
         <p className="text-[#3c3c43]">Subtotal</p>
         <p className="text-black">{peso(subtotal)}</p>
       </div>
+      {discount > 0 && (
+        <div className="flex w-full items-center justify-between text-[14px] leading-[21px] whitespace-nowrap">
+          <p className="text-[#3c3c43]">
+            Voucher <span className="text-[12px] font-semibold tracking-[0.4px] text-[#16a34a]">{voucher}</span>
+          </p>
+          <p className="font-semibold text-[#16a34a]">−{peso(discount)}</p>
+        </div>
+      )}
       <div className="flex w-full items-center justify-between text-[14px] leading-[21px] whitespace-nowrap">
-        <p className="text-[#3c3c43]">Service Fee</p>
-        <p className="text-black">{peso(serviceFee)}</p>
+        <p className="text-[#3c3c43]">
+          Service Fee{serviceFee === 0 && voucher && <span className="ml-[4px] text-[12px] font-semibold tracking-[0.4px] text-[#16a34a]">{voucher}</span>}
+        </p>
+        {serviceFee === 0 ? (
+          <p className="flex items-center gap-[6px]">
+            <s className="text-[#a1a1a1]">{peso(SERVICE_FEE)}</s>
+            <span className="font-semibold text-[#16a34a]">Free</span>
+          </p>
+        ) : (
+          <p className="text-black">{peso(serviceFee)}</p>
+        )}
       </div>
       <div className="flex h-[53.084px] w-full items-center justify-between border-t-[0.5px] border-border-default pt-[0.5px] whitespace-nowrap">
         <p className="text-[16px] leading-[24px] font-bold text-text-primary">{totalLabel}</p>
@@ -127,7 +149,7 @@ export function PriceRows({ subtotal, serviceFee, total, totalLabel }: { subtota
 }
 
 // Figma: totals "Section" (node 12348:822) incl. the terminal-fee note (a raster screenshot in Figma, node 12348:835)
-export function PriceSummary(props: { subtotal: number; serviceFee: number; total: number }) {
+export function PriceSummary(props: PriceProps) {
   return (
     <section className="flex w-full flex-col items-center gap-[12px]">
       <PriceRows {...props} totalLabel="Total amount due" />
@@ -135,6 +157,109 @@ export function PriceSummary(props: { subtotal: number; serviceFee: number; tota
         <img alt="" src={infoNote} className="mt-px size-[15px]" />
         <p className="flex-1 text-[11px] leading-[15.95px] text-[#5e5d5f]">Terminal and port fees are not included. These are collected separately at the port before boarding.</p>
       </div>
+    </section>
+  )
+}
+
+const VOUCHER_ERROR: Record<Exclude<VoucherCheck, 'ok'>, string> = {
+  invalid: 'Invalid voucher code. Please check the code and try again.',
+  expired: 'This voucher has expired. Try another voucher or continue without one.',
+  ineligible: 'This voucher can’t be used for this booking. Check the voucher terms for eligible routes or minimum amount.',
+}
+
+/**
+ * Voucher on Review & pay: type a code, tap Apply.
+ * default → note "Limited vouchers…"; applied → green row "You saved ₱X" + Remove; invalid / expired / not eligible → red field + message;
+ * gone (set by the page when Pay finds them all claimed) → amber notice, field empty to try another, Pay continues without one.
+ */
+export function VoucherField({ applied, saved, gone, onApply, onRemove }: { applied?: string; saved: number; gone?: boolean; onApply: (code: string) => VoucherCheck; onRemove: () => void }) {
+  const [code, setCode] = useState('')
+  const [error, setError] = useState<Exclude<VoucherCheck, 'ok'> | null>(null)
+  const apply = () => {
+    const result = onApply(code.trim().toUpperCase())
+    if (result === 'ok') setCode('')
+    setError(result === 'ok' ? null : result)
+  }
+  const limited = applied ? VOUCHERS[applied]?.limited : false
+  // Prototype controls → Voucher states: type the code in and press Apply
+  const tryCode = useRef(onApply)
+  useEffect(() => {
+    tryCode.current = onApply
+  })
+  useEffect(() => {
+    voucherDemo.apply = (c) => {
+      const result = tryCode.current(c)
+      setCode(result === 'ok' ? '' : c)
+      setError(result === 'ok' ? null : result)
+    }
+    voucherDemo.clear = () => {
+      setCode('')
+      setError(null)
+    }
+    return () => void (voucherDemo.apply = voucherDemo.clear = undefined)
+  }, [])
+  return (
+    <section id="voucher" className="flex w-full scroll-mt-[96px] flex-col gap-[8px] pt-[4px]">
+      <ListTitle icon={<Glyph name="ticket" size={16} className="text-[#8e8e93]" />}>Voucher</ListTitle>
+      {applied ? (
+        <div className="flex items-center gap-[10px] rounded-12 border-[0.5px] border-[#86efac] bg-[#f0fdf4] py-[10px] pr-[8px] pl-[12px]">
+          <span className="flex size-[20px] shrink-0 items-center justify-center self-start rounded-full bg-[#16a34a] mt-[1px]">
+            <TickWhiteIcon />
+          </span>
+          <p className="flex min-w-0 flex-1 flex-col">
+            <span className="text-[14px] leading-[20px] font-bold tracking-[0.5px] text-[#166534]">{applied}</span>
+            <span className="text-[12px] leading-[16px] text-[#4d7c5a]">
+              Voucher applied! You saved {pesoTotal(saved)}.{limited && ' Check out soon to keep it.'}
+            </span>
+          </p>
+          <button type="button" onClick={onRemove} className="h-[36px] shrink-0 px-[8px] text-[13px] font-semibold text-[#8e8e93]">
+            Remove
+          </button>
+        </div>
+      ) : (
+        <>
+          <form
+            className="flex gap-[8px]"
+            onSubmit={(e) => {
+              e.preventDefault()
+              apply()
+            }}
+          >
+            <input
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value)
+                setError(null)
+              }}
+              placeholder="Enter voucher code"
+              aria-label="Voucher code"
+              aria-invalid={!!error || undefined}
+              autoCapitalize="characters"
+              autoComplete="off"
+              className={`h-[44px] min-w-0 flex-1 rounded-12 border px-[12px] text-[15px] uppercase outline-none transition-colors placeholder:normal-case placeholder:text-text-secondary ${error ? 'border-[#ef4444] bg-[#fdf2f1]' : 'border-border-default bg-white focus:border-[#f97316]'}`}
+            />
+            <button
+              type="submit"
+              disabled={!code.trim()}
+              className="h-[44px] shrink-0 rounded-12 bg-[#f97316] px-[18px] text-[14px] font-bold text-white transition-opacity disabled:opacity-50"
+            >
+              Apply
+            </button>
+          </form>
+          {error ? (
+            <p role="alert" className="text-[13px] leading-[18px] text-[#ef4444]">{VOUCHER_ERROR[error]}</p>
+          ) : gone ? (
+            <div role="alert" className="flex items-start gap-[10px] rounded-12 bg-[#fff7ed] px-[12px] py-[10px]">
+              <img alt="" src={infoNote} className="mt-[2px] size-[15px]" />
+              <p className="flex-1 text-[13px] leading-[18px] text-[#9a3412]">
+                <span className="font-semibold">Voucher no longer available.</span> All vouchers were claimed before you completed checkout.
+              </p>
+            </div>
+          ) : (
+            <p className="text-[12px] leading-[17px] text-[#8e8e93]">Limited vouchers. Only reserved once you complete checkout.</p>
+          )}
+        </>
+      )}
     </section>
   )
 }
@@ -318,17 +443,38 @@ function ContactDetailsForm({ pinned, onConfirmed }: { pinned: ProtoFlags['email
 }
 
 /** Terms line above the Pay button (node 12348:957) */
-export const TermsNote = () => (
+// Inline agreement (no extra modal): completing the booking is the consent.
+export const TermsNote = ({ operator }: { operator?: string }) => (
   <p className="mb-[16px] text-center text-[11.5px] leading-[17px] text-[#6c6c70]">
-    By continuing, you agree to our{' '}
-    <a href="#" className="font-semibold text-[#f97316] underline">
+    By completing this booking, you agree to {operator ? `${operator}’s` : 'the operator’s'}{' '}
+    <button type="button" onClick={() => document.getElementById('operator-policy')?.scrollIntoView({ behavior: 'smooth', block: 'center' })} className="inline font-semibold text-[#f97316] underline">
+      booking policy
+    </button>
+    , our{' '}
+    <Link to="/terms" className="font-semibold text-[#f97316] underline">
       Terms of Service
-    </a>{' '}
-    and
-    <br />{' '}
-    <a href="#" className="font-semibold text-[#f97316] underline">
+    </Link>{' '}
+    and{' '}
+    <Link to="/privacy" className="font-semibold text-[#f97316] underline">
       Privacy Policy
-    </a>
+    </Link>
     .
   </p>
 )
+
+// Operator terms on Review & pay: cancellation cutoff, refunds, baggage, check-in — specific to the shipping line being booked.
+const POLICY_ICONS = { cancellation: 'calendarX', refund: 'refund', baggage: 'bag', checkin: 'clock' } as const
+
+export function OperatorPolicy({ line, operator }: { line: ShippingLine; operator: string }) {
+  const policy = POLICY[line]
+  return (
+    <section id="operator-policy" className="flex w-full scroll-mt-[16px] flex-col gap-[12px]">
+      <SectionLabel icon="ticket">{operator} policy</SectionLabel>
+      <RowCard>
+        {(Object.keys(POLICY_ICONS) as (keyof typeof POLICY_ICONS)[]).map((k) => (
+          <IconRow key={k} icon={POLICY_ICONS[k]} title={policy[k].title} detail={policy[k].detail} />
+        ))}
+      </RowCard>
+    </section>
+  )
+}

@@ -58,6 +58,8 @@ type Props = {
   vehicles: VehicleDetail[]
   subtotal: number
   serviceFee: number
+  discount?: number
+  voucher?: string
   total: number
   /** "Total amount paid" (default) / "Total amount due" … */
   totalLabel?: string
@@ -66,7 +68,7 @@ type Props = {
 }
 
 // Figma: "OrderSummary" (node 11598:52550) inside the OJ - PROCESSING card
-export default function OrderSummary({ trip, from, to, departDate, arriveDate, passengers, vehicles, subtotal, serviceFee, total, totalLabel = 'Total amount paid', children }: Props) {
+export default function OrderSummary({ trip, from, to, departDate, arriveDate, passengers, vehicles, subtotal, serviceFee, discount, voucher, total, totalLabel = 'Total amount paid', children }: Props) {
   return (
     <div className="flex flex-col px-[16px] pt-[8px] pb-[16px]">
       {/* UpcomingCard (node 11598:52551) */}
@@ -156,7 +158,7 @@ export default function OrderSummary({ trip, from, to, departDate, arriveDate, p
             </section>
           )}
           <section className="flex flex-col items-center gap-[11.988px]">
-            <PriceRows subtotal={subtotal} serviceFee={serviceFee} total={total} totalLabel={totalLabel} />
+            <PriceRows subtotal={subtotal} serviceFee={serviceFee} discount={discount} voucher={voucher} total={total} totalLabel={totalLabel} />
           </section>
         </div>
         )}

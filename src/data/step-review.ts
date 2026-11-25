@@ -1,5 +1,7 @@
 import type { BookingState, PassengerDetail, VehicleDetail } from '../booking/BookingContext'
-import { arrivalNoteFor, findDeparture } from './departures'
+import { arrivalNoteFor, findDeparture, type Departure } from './departures'
+import { FREE_PER_VEHICLE, VEHICLE_FARE } from './step-details'
+import { VOUCHERS } from './policy'
 
 // Figma fallback for "Review & pay" (node 12348:746) — used when the earlier steps haven't filled the booking yet,
 // so the screen renders exactly like Figma when opened directly.
@@ -38,6 +40,31 @@ export const mockTrip: Trip = {
 /** Service Fee from Figma (₱84.00) */
 export const SERVICE_FEE = 84
 
+/** Service fee for a booking: waived by the NO-FEE (return-trip) voucher. */
+export const serviceFeeOf = (b: { voucher?: string }) => (b.voucher && VOUCHERS[b.voucher]?.off === 'fee' ? 0 : SERVICE_FEE)
+
+/** Peso discount from an amount voucher (SAVE200 etc.), never more than the fares. */
+export function discountOf(b: { voucher?: string }, subtotal: number) {
+  const off = b.voucher ? VOUCHERS[b.voucher]?.off : undefined
+  return typeof off === 'number' ? Math.min(off, subtotal) : 0
+}
+
+/** Subtotal − voucher + service fee. */
+export function priceOf(b: { voucher?: string }, subtotal: number) {
+  const discount = discountOf(b, subtotal)
+  const serviceFee = serviceFeeOf(b)
+  return { subtotal, discount, serviceFee, voucher: b.voucher, total: subtotal - discount + serviceFee }
+}
+
+/** "All-in" estimate shown on a Select departure row, before passenger types and vehicle type are chosen (so Senior/PWD discounts and cabin upgrades aren't in it). */
+export function estimateTotal(d: Departure, b: BookingState) {
+  const free = b.vehicleCount > 0 ? FREE_PER_VEHICLE : 0
+  const fares = Math.max(b.passengerCount - free, 0) * d.price
+  const vehicles = b.vehicleCount * VEHICLE_FARE
+  const fee = serviceFeeOf(b)
+  return { fares, vehicles, fee, total: fares + vehicles + fee }
+}
+
 /** Booking data with the Figma fallback applied + computed money. */
 export function reviewData(booking: BookingState) {
   const filled = booking.passengers.length > 0
@@ -48,7 +75,7 @@ export function reviewData(booking: BookingState) {
     ? { vessel: d.vessel, operator: d.operator, vesselType: d.vesselType, departTime: d.departTime, arriveTime: d.arriveTime, duration: d.duration, arrivalNote: arrivalNoteFor(d, booking.date), logo: d.logo }
     : mockTrip
   const subtotal = passengers.reduce((s, p) => s + (p.fare ?? 0), 0) + vehicles.reduce((s, v) => s + v.fare, 0)
-  return { passengers, vehicles, trip, subtotal, serviceFee: SERVICE_FEE, total: subtotal + SERVICE_FEE }
+  return { passengers, vehicles, trip, ...priceOf(booking, subtotal) }
 }
 
 /** Row style: "₱1350.00" */

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 import chevronDown from '../assets/live/schedule/chevron-down-slate500.svg'
 import closeOrange from '../assets/live/schedule/close-orange.svg'
 import funnelOrange from '../assets/live/schedule/funnel-orange.svg'
@@ -8,7 +9,12 @@ import DaySection from '../components/schedule/DaySection'
 import EmptyPage from '../components/schedule/EmptyPage'
 import PortSelectSheet from '../components/schedule/PortSelectSheet'
 import ScheduleFilterSheet from '../components/schedule/ScheduleFilterSheet'
-import { dayOptions, emptyFilter, formatTimeAgo, type DayKey, type ScheduleFilter } from '../data/schedule'
+import { PAGE_LOAD } from '../components/PageLoader'
+import { useBooking } from '../booking/BookingContext'
+import { freshPatch } from '../booking/flows'
+import { formatBookingDate } from '../booking/date'
+import { scheduleDeparture } from '../data/departures'
+import { dayOptions, departuresFor, emptyFilter, filterDepartures, formatTime, formatTimeAgo, portInitial, portName, type DayKey, type Departure, type ScheduleFilter } from '../data/schedule'
 
 // Live keeps the filter in a global atom: it survives leaving and re-entering the tab (day selection does not).
 let savedFilter: ScheduleFilter = emptyFilter
@@ -19,28 +25,31 @@ const activeShadow = 'shadow-[inset_0_1px_1px_#0000000d,0_1px_2px_#f973161a]'
 
 // Schedule tab — rebuilt from the live app (book.tripket.ph/schedule).
 export default function Schedule() {
-  const days = useMemo(() => dayOptions(), [])
+  // only sailings you can still book: Today and Tomorrow
+  const days = useMemo(() => dayOptions().filter((d) => d.key !== 'yesterday'), [])
+  const navigate = useNavigate()
+  const { update } = useBooking()
   const [filter, setFilterState] = useState<ScheduleFilter>(savedFilter)
   const setFilter = (f: ScheduleFilter) => {
     savedFilter = f
     setFilterState(f)
   }
   const [selected, setSelected] = useState<DayKey>('today')
-  const [expanded, setExpanded] = useState<Set<DayKey>>(() => new Set(['today']))
   const [totals, setTotals] = useState<Partial<Record<DayKey, number>>>({})
   const onTotal = useCallback((key: DayKey, n: number) => setTotals((t) => (t[key] === n ? t : { ...t, [key]: n })), [])
 
   // "Updated just now" + Refresh (icon spins for 600ms; the label re-renders every 30s)
   const [refreshedAt, setRefreshedAt] = useState(() => Date.now())
-  const [, setTick] = useState(0)
+  const [now, setNow] = useState(() => Date.now())
   const [spinning, setSpinning] = useState(false)
   useEffect(() => {
-    const id = setInterval(() => setTick((n) => n + 1), 30_000)
+    const id = setInterval(() => setNow(Date.now()), 30_000)
     return () => clearInterval(id)
   }, [])
   const refresh = () => {
     setSpinning(true)
     setRefreshedAt(Date.now())
+    setNow(Date.now())
     setTimeout(() => setSpinning(false), 600)
   }
 
@@ -49,22 +58,47 @@ export default function Schedule() {
   const groupRefs = useRef<Partial<Record<DayKey, HTMLDivElement | null>>>({})
   const selectDay = (key: DayKey) => {
     setSelected(key)
-    setExpanded((s) => new Set(s).add(key))
     requestAnimationFrame(() => {
       setTimeout(() => groupRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
     })
   }
-  const toggleDay = (key: DayKey) => {
-    setExpanded((s) => {
-      const n = new Set(s)
-      if (n.has(key)) n.delete(key)
-      else n.add(key)
-      return n
-    })
-    setSelected(key)
+
+  // Tapping a sailing starts booking it: route + date filled in, and that sailing pre-selected on Select departure
+  const book = (d: Departure) => {
+    const port = (name: string) => ({ code: portInitial(name), city: portName(name) })
+    const id = scheduleDeparture({ id: d.id, line: d.operator.line, departure: d.departure, hours: d.duration })
+    update({ ...freshPatch, from: port(d.origin.name), to: port(d.destination.name), date: formatBookingDate(d.departure), scheduleTrip: id, departureId: id })
+    navigate('/book', { state: PAGE_LOAD })
   }
 
-  const current = days.find((d) => d.key === selected) ?? days[1]
+  // "Next trip" pill: the first sailing today that hasn't left yet; shown while that row is off screen, tap to jump to it
+  const nextTrip = useMemo(
+    () =>
+      filterDepartures(departuresFor('today'), filter)
+        .sort((a, b) => a.departure.getTime() - b.departure.getTime())
+        .find((d) => !d.cancelled && (d.actualDeparture ?? d.departure).getTime() > now),
+    [filter, now],
+  )
+  const [nextEl, setNextEl] = useState<HTMLElement | null>(null)
+  const [nextDir, setNextDir] = useState<'up' | 'down' | null>(null)
+  useEffect(() => {
+    if (!nextEl) return
+    // on screen = between the sticky filters (top) and the tab bar (bottom); otherwise point the pill toward it
+    const check = () => {
+      const r = nextEl.getBoundingClientRect()
+      setNextDir(r.top > innerHeight - 110 ? 'down' : r.bottom < 230 ? 'up' : null)
+    }
+    check()
+    addEventListener('scroll', check, { passive: true })
+    addEventListener('resize', check)
+    return () => {
+      removeEventListener('scroll', check)
+      removeEventListener('resize', check)
+    }
+  }, [nextEl])
+  const showNext = nextEl && nextDir
+
+  const current = days.find((d) => d.key === selected) ?? days[0]
   const allEmpty = Object.keys(totals).length >= days.length && Object.values(totals).every((n) => n === 0)
   const extraFilters = Boolean(filter.vesselType || filter.operatorId)
   const anyFilter = extraFilters || Boolean(filter.origin)
@@ -81,7 +115,7 @@ export default function Schedule() {
       </header>
 
       <div className="sticky top-0 z-20 bg-white pt-[8px]">
-        <div className="grid grid-cols-3 gap-[10px] px-[20px] pb-[14px]">
+        <div className="grid grid-cols-2 gap-[10px] px-[20px] pb-[14px]">
           {days.map((d) => {
             const on = d.key === selected
             return (
@@ -164,6 +198,22 @@ export default function Schedule() {
             <span>Refresh</span>
           </button>
         </div>
+
+        {showNext && nextTrip && (
+          // floats at the bottom of the screen, just above the tab bar
+          <div className="pointer-events-none fixed inset-x-0 bottom-[104px] z-30 flex justify-center">
+            <button
+              type="button"
+              onClick={() => nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+              className="animate-pop-up pointer-events-auto flex h-[40px] cursor-pointer items-center gap-[8px] rounded-full bg-[#f97316] px-[18px] text-[14px] font-bold text-white shadow-[0_6px_16px_rgba(249,115,22,0.35)] transition-transform active:scale-[0.97]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={nextDir === 'up' ? 'rotate-180' : ''} aria-hidden>
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+              Next trip <span className="font-extrabold">{formatTime(nextTrip.actualDeparture ?? nextTrip.departure)}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className={allEmpty ? 'hidden' : 'mt-[8px] space-y-[8px] px-[20px]'}>
@@ -175,7 +225,15 @@ export default function Schedule() {
             }}
             className="scroll-mt-[198px]"
           >
-            <DaySection day={d} filter={filter} expanded={expanded.has(d.key)} onToggle={() => toggleDay(d.key)} onTotal={onTotal} />
+            <DaySection
+              day={d}
+              filter={filter}
+              now={now}
+              onTotal={onTotal}
+              onBook={book}
+              nextId={d.key === 'today' ? nextTrip?.id : undefined}
+              nextRef={d.key === 'today' ? setNextEl : undefined}
+            />
           </div>
         ))}
       </div>
@@ -188,7 +246,6 @@ export default function Schedule() {
             onButton={() => {
               setFilter(emptyFilter)
               setSelected('today')
-              setExpanded(new Set(['today']))
             }}
           />
         </div>

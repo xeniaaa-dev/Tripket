@@ -7,13 +7,15 @@ import ConfirmationView, { type Action } from '../components/tickets/Confirmatio
 import { useTicketActions } from '../components/tickets/useTicketActions'
 import { toView } from '../data/tickets'
 import { anotherPatch } from '../booking/flows'
+import { ReturnModal } from '../components/confirmation/PostBooking'
+import ReferralCard from '../components/confirmation/ReferralCard'
 import { arrivalDayDate, dayDate, reviewData } from '../data/step-review'
 
 // Figma: "OJ - PROCESSING" (node 11598:52529) — Booking under review: payment posted, waiting for admin confirmation
 export default function BookingConfirmed() {
   const navigate = useNavigate()
   const { booking, reset, tickets, update } = useBooking()
-  const { passengers, vehicles, trip, subtotal, serviceFee, total } = reviewData(booking)
+  const { passengers, vehicles, trip, subtotal, serviceFee, discount, voucher, total } = reviewData(booking)
   const leave = (to: string) => {
     reset()
     navigate(to)
@@ -22,9 +24,11 @@ export default function BookingConfirmed() {
   // ?id= → the submitted ticket: the screen follows its live status (Figma confirmation screens 11598:51228)
   const [params] = useSearchParams()
   const stored = tickets.find((t) => t.id === params.get('id'))
-  const { continuePayment, rebook, anotherTrip, paymentSheet } = useTicketActions()
+  const { continuePayment, rebook, anotherTrip, returnTrip, paymentSheet } = useTicketActions()
   if (stored) {
     const ticket = toView(stored)
+    // booked trips (not pending / expired / refunded): prompt the return trip and the companion code
+    const active = ticket.status === 'under_review' || ticket.status === 'generating' || ticket.status === 'confirmed'
     const myTickets: Action = { label: 'View My Tickets', onClick: () => leave('/tickets') }
     // Figma "Book another trip" flow: From = this trip's destination, passengers and vehicles carried over
     const another: Action = { label: 'Book another trip', onClick: () => anotherTrip(ticket) }
@@ -38,7 +42,13 @@ export default function BookingConfirmed() {
             : [myTickets, { ...another, outline: true }]
     return (
       <>
-        <ConfirmationView ticket={ticket} actions={actions} />
+        <ConfirmationView
+          ticket={ticket}
+          actions={actions}
+          promo={active && <ReferralCard />}
+        />
+        {/* only once the booking is confirmed (OceanJet review / Maayo ticket generation done) — pops then, even if the user is already on this screen */}
+        {ticket.status === 'confirmed' && <ReturnModal ticket={ticket} onBook={() => returnTrip(ticket)} />}
         {paymentSheet}
       </>
     )
@@ -74,6 +84,8 @@ export default function BookingConfirmed() {
             vehicles={vehicles}
             subtotal={subtotal}
             serviceFee={serviceFee}
+            discount={discount}
+            voucher={voucher}
             total={total}
           />
         </div>

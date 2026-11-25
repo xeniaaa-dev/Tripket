@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import chevron from '../../assets/live/tickets/chevron-down-orange.svg'
-import { peso, pesoTotal } from '../../data/step-review'
+import { peso, pesoTotal, SERVICE_FEE } from '../../data/step-review'
 import { bookingRef, LINES, lineOf, moneyOf, refundOf, seatOf, ticketNo, type TicketView } from '../../data/tickets'
 import { ItemRow, UserIcon } from '../confirmation/OrderSummary'
 import { PriceRows } from '../step-review/ReviewSections'
@@ -134,7 +134,7 @@ const Collapsible = ({ title, subtitle, defaultOpen, closedValue, children }: { 
 /** Passenger / vehicle rows + price rows (the body of "Fare details", also shown plain on the Maayo "Payment received" screen) */
 export function FareList({ ticket, totalLabel = 'Total amount paid' }: { ticket: TicketView; totalLabel?: string }) {
   const { passengers, vehicles } = ticket.booking
-  const { subtotal, serviceFee, total } = moneyOf(ticket)
+  const money = moneyOf(ticket)
   return (
     <>
       <section className="flex flex-col gap-[8px]">
@@ -158,7 +158,7 @@ export function FareList({ ticket, totalLabel = 'Total amount paid' }: { ticket:
         </section>
       )}
       <div className="flex flex-col items-center gap-[8px]">
-        <PriceRows subtotal={subtotal} serviceFee={serviceFee} total={total} totalLabel={totalLabel} />
+        <PriceRows {...money} totalLabel={totalLabel} />
       </div>
     </>
   )
@@ -173,12 +173,30 @@ export function FareDetails({ ticket, defaultOpen = true, totalLabel = 'Total am
   )
 }
 
-const Row = ({ label, value }: { label: string; value: string }) => (
+const Row = ({ label, value, green }: { label: ReactNode; value: string; green?: boolean }) => (
   <div className="flex items-center justify-between rounded-[8px] border-[0.5px] border-[#b4b4b4] px-[10px] py-[7px] text-[12px] text-[#1c1917]">
     <span className="text-[#5e5d5f]">{label}</span>
-    <span className="font-medium">{value}</span>
+    <span className={green ? 'font-semibold text-[#16a34a]' : 'font-medium'}>{value}</span>
   </div>
 )
+
+/** Voucher used at payment (already taken off "Amount paid"): SAVE200 −₱200.00, or NO-FEE −₱84.00 service fee. */
+function VoucherUsedRow({ ticket }: { ticket: TicketView }) {
+  const { voucher, discount, serviceFee } = moneyOf(ticket)
+  if (!voucher) return null
+  const off = discount || SERVICE_FEE - serviceFee
+  return (
+    <Row
+      green
+      label={
+        <>
+          Voucher used <span className="font-semibold tracking-[0.4px] text-[#16a34a]">{voucher}</span>
+        </>
+      }
+      value={`-${peso(off)}`}
+    />
+  )
+}
 
 /** Figma "Refund details — Amount, account, date": full refund, or partial (original − refund = total paid) */
 export function RefundDetails({ ticket, partial }: { ticket: TicketView; partial: boolean }) {
@@ -189,6 +207,7 @@ export function RefundDetails({ ticket, partial }: { ticket: TicketView; partial
       <p className="text-[12px] font-medium text-[#5e5d5f]">Refund</p>
       {partial ? (
         <>
+          <VoucherUsedRow ticket={ticket} />
           <Row label="Original total amount" value={peso(r.original)} />
           <Row label="Refund amount" value={`-${peso(r.refund)}`} />
           <div className="flex items-center justify-between pt-[4px]">
@@ -198,6 +217,7 @@ export function RefundDetails({ ticket, partial }: { ticket: TicketView; partial
         </>
       ) : (
         <>
+          <VoucherUsedRow ticket={ticket} />
           <Row label="Amount paid" value={peso(r.original)} />
           <Row label="Refund amount" value={peso(r.refund)} />
           <Row label="Refund method" value={r.method} />

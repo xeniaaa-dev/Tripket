@@ -36,6 +36,9 @@ const oceanjet = { line: 'oceanjet', operator: 'OceanJet', vessel: 'OceanJet 8',
 const hsMarine = { line: 'hsmarine', operator: 'HS Marine', vessel: 'MV HS Marine 1', logo: hsMarineLogo, logoFit: 'cover', vesselType: 'RoRo', price: 388 } as const
 const maayo = { line: 'maayo', operator: 'Maayo Shipping', vessel: 'MV Maayo 1', logo: maayoLogo, logoFit: 'plain', vesselType: 'RoRo', price: 350 } as const
 
+/** Operator name + logo per shipping line (Home popular route cards) */
+export const OPERATORS: Record<ShippingLine, { operator: string; logo: string; logoFit: Departure['logoFit'] }> = { oceanjet, hsmarine: hsMarine, maayo }
+
 export const departures: Departure[] = [
   { ...maayo, id: 'maayo-0400', departTime: '4:00 AM', arriveTime: '5:30 AM', duration: '1H 30M', arrivalNote: '' },
   { ...hsMarine, id: 'hsmarine-0920', departTime: '9:20 AM', arriveTime: '10:50 AM', duration: '1H 30M', arrivalNote: '' },
@@ -46,7 +49,30 @@ export const departures: Departure[] = [
   { ...oceanjet, id: 'oceanjet-1910', departTime: '7:10 PM', arriveTime: '7:50 PM', duration: '40M', arrivalNote: '' },
 ]
 
-export const findDeparture = (id: string | null) => departures.find((d) => d.id === id)
+// Sailings picked on the Schedule tab: added to the booking's departure list (Select departure shows it first, selected)
+const fromSchedule = new Map<string, Departure>()
+const LINE = { oceanjet, hsmarine: hsMarine, maayo }
+const clock = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+/** Register a Schedule sailing as a bookable departure; returns its id */
+export function scheduleDeparture(t: { id: string; line: ShippingLine; departure: Date; hours: number }) {
+  const mins = Math.round(t.hours * 60)
+  const arrive = new Date(t.departure.getTime() + mins * 60e3)
+  const id = `schedule-${t.id}`
+  fromSchedule.set(id, {
+    ...LINE[t.line],
+    id,
+    departTime: clock(t.departure),
+    arriveTime: clock(arrive),
+    duration: [mins >= 60 && `${Math.floor(mins / 60)}H`, mins % 60 && `${mins % 60}M`].filter(Boolean).join(' '),
+    arrivalNote: '',
+    nextDayArrival: arrive.getDate() !== t.departure.getDate(),
+  })
+  return id
+}
+/** per-person fare of a shipping line (Schedule rows show it) */
+export const fareOf = (line: ShippingLine) => LINE[line].price
+
+export const findDeparture = (id: string | null | undefined) => (id ? (fromSchedule.get(id) ?? departures.find((d) => d.id === id)) : undefined)
 
 /** "Arrives Wed, Nov 11" for the booked travel date (all prototype departures arrive the same day). */
 export function arrivalNoteFor(d: Departure, bookingDate: string) {

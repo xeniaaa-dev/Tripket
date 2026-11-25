@@ -6,14 +6,16 @@ import logoMaayo from '../assets/live/schedule/logo-maayo.png'
 import logoOceanjet from '../assets/live/schedule/logo-oceanjet.png'
 
 export type VesselType = 'ro_ro' | 'fastcraft'
-export type Operator = { id: number; name: string; logo: string; vessel: string; vesselType: VesselType }
+import type { ShippingLine } from './departures'
+
+export type Operator = { id: number; name: string; logo: string; vessel: string; vesselType: VesselType; /** booking-flow shipping line */ line: ShippingLine }
 export type SchedulePort = { id: number; name: string; city: string; province: string }
 
 export const operators: Operator[] = [
   // names and (placeholder) vessel names match the booking flow's departures (src/data/departures.ts)
-  { id: 1, name: 'Maayo Shipping', logo: logoMaayo, vessel: 'MV Maayo 1', vesselType: 'ro_ro' },
-  { id: 2, name: 'OceanJet', logo: logoOceanjet, vessel: 'OceanJet 8', vesselType: 'fastcraft' },
-  { id: 3, name: 'HS Marine', logo: logoHsStar, vessel: 'MV HS Marine 1', vesselType: 'fastcraft' },
+  { id: 1, name: 'Maayo Shipping', logo: logoMaayo, vessel: 'MV Maayo 1', vesselType: 'ro_ro', line: 'maayo' },
+  { id: 2, name: 'OceanJet', logo: logoOceanjet, vessel: 'OceanJet 8', vesselType: 'fastcraft', line: 'oceanjet' },
+  { id: 3, name: 'HS Marine', logo: logoHsStar, vessel: 'MV HS Marine 1', vesselType: 'fastcraft', line: 'hsmarine' },
 ]
 
 /** /api/vessel-types → ["ro_ro","fastcraft"]; labels as the filter sheet maps them, and as the card badge (vessel.type_label) shows them */

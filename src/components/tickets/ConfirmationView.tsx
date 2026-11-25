@@ -3,9 +3,10 @@ import call02 from '../../assets/figma/confirmation/call-02.svg'
 import infoCircle from '../../assets/figma/confirmation/info-circle.svg'
 import infoNote from '../../assets/figma/confirmation/info-note.svg'
 import arrowLeft from '../../assets/live/tickets/arrow-left.svg'
+import NextSteps from '../confirmation/NextSteps'
 import OrderSummary from '../confirmation/OrderSummary'
 import { reviewData } from '../../data/step-review'
-import { LINES, lineOf, mmss, PAYMENT_WINDOW_MS, screenOf, tripOf, type TicketView } from '../../data/tickets'
+import { LINES, lineOf, mmss, PAYMENT_WINDOW_MS, pricedBooking, screenOf, tripOf, type TicketView } from '../../data/tickets'
 import Qr from './Qr'
 import { BookingReference, FareDetails, FareList, RefundDetails, TicketBlocks } from './TicketBlocks'
 
@@ -90,14 +91,14 @@ function GeneratingBody({ ticket, children }: { ticket: TicketView; children: Re
   )
 }
 
-type Props = { ticket: TicketView; onBack?: () => void; actions: Action[]; children?: ReactNode }
+type Props = { ticket: TicketView; onBack?: () => void; actions: Action[]; children?: ReactNode; /** extra cards under the pre-boarding card (return-trip prompt, referral) */ promo?: ReactNode }
 
-export default function ConfirmationView({ ticket, onBack, actions, children }: Props) {
+export default function ConfirmationView({ ticket, onBack, actions, children, promo }: Props) {
   const { booking, status } = ticket
   const line = lineOf(booking)
   const L = LINES[line]
   const sc = screenOf(ticket)
-  const { passengers, vehicles, trip, subtotal, serviceFee, total } = reviewData(booking)
+  const { passengers, vehicles, trip, subtotal, serviceFee, discount, voucher, total } = reviewData(pricedBooking(ticket))
   const t = tripOf(ticket)
   const tripNamed = { ...trip, operator: t.operator }
   const showRef = L.reference
@@ -159,6 +160,8 @@ export default function ConfirmationView({ ticket, onBack, actions, children }: 
               vehicles={vehicles}
               subtotal={subtotal}
               serviceFee={serviceFee}
+              discount={discount}
+              voucher={voucher}
               total={total}
               totalLabel={sc.totalLabel}
             >
@@ -187,6 +190,10 @@ export default function ConfirmationView({ ticket, onBack, actions, children }: 
             </p>
           </div>
         </div>
+
+        {/* active bookings only: what to do before boarding */}
+        {(status === 'under_review' || status === 'generating' || status === 'confirmed') && <NextSteps ticket={ticket} />}
+        {promo}
 
         <div className="flex w-full flex-col gap-[12px] pt-[12px]">
           {actions.map((a) => (

@@ -1,5 +1,6 @@
 import { cabins, FREE_PER_VEHICLE, VEHICLE_FARE } from '../data/step-details'
 import { findDeparture } from '../data/departures'
+import { VOUCHER } from '../data/policy'
 import type { BookingState, PassengerDetail, VehicleDetail } from './BookingContext'
 import { addDays, formatBookingDate, parseBookingDate, startOfToday } from './date'
 
@@ -47,6 +48,8 @@ export const freshPatch: Partial<BookingState> = {
   departureId: null,
   passengers: [],
   vehicles: [],
+  voucher: undefined,
+  scheduleTrip: undefined,
 }
 
 const carried = (b: BookingState) => ({
@@ -55,6 +58,8 @@ const carried = (b: BookingState) => ({
   passengerCount: b.passengers.length || b.passengerCount,
   vehicleCount: b.vehicles.length,
   departureId: null,
+  voucher: undefined,
+  scheduleTrip: undefined,
 })
 
 /** The date the previous trip arrives (all prototype sailings arrive the same day unless flagged). */
@@ -79,6 +84,7 @@ export const returnPatch = (b: BookingState): Partial<BookingState> => ({
   date: formatBookingDate(notBeforeToday(addDays(arrivalDate(b), 1))),
   flow: 'return',
   lineLock: undefined,
+  voucher: VOUCHER.code,
 })
 
 /** Book another trip: previous destination becomes From, To is blank, date = previous arrival date. */
