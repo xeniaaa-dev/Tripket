@@ -5,6 +5,7 @@ import { nextPath } from '../booking/flows'
 import BookingHeader from '../components/booking/BookingHeader'
 import DateSelector from '../components/booking/DateSelector'
 import RouteBanner from '../components/booking/RouteBanner'
+import ReviewRouteBanner from '../components/step-review/ReviewRouteBanner'
 import StepFooter from '../components/booking/StepFooter'
 import { UserMultiple } from '../components/step-passengers/icons'
 import PassengerCounter from '../components/step-passengers/PassengerCounter'
@@ -27,9 +28,14 @@ export default function PassengersVehicle() {
   return (
     <div className="flex min-h-dvh flex-col bg-white">
       <BookingHeader title="Passengers & vehicle" screen="book" />
-      <RouteBanner>
-        <DateSelector />
-      </RouteBanner>
+      {/* Schedule flow: the sailing (date and time) is already picked, so show its Departs / Arrives like the later steps */}
+      {booking.flow === 'schedule' ? (
+        <ReviewRouteBanner />
+      ) : (
+        <RouteBanner>
+          <DateSelector />
+        </RouteBanner>
+      )}
       {/* live: label row (icon inset 10px), then the two cards */}
       <section className="px-[16px] pt-[16px]">
         <div className="flex h-[20px] items-center gap-[8px] px-[10px]">

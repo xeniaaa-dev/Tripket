@@ -346,9 +346,9 @@ export function ContactDetails({ onConfirmed }: { onConfirmed?: (ok: boolean) =>
 
 function ContactDetailsForm({ pinned, onConfirmed }: { pinned: ProtoFlags['emailState']; onConfirmed?: (ok: boolean) => void }) {
   const { user } = useAuth()
-  const seed = pinned === 'auto' ? (user?.email ?? '') : pinned === 'default' || pinned === 'focus' ? '' : 'ken@email.com'
+  const seed = pinned === 'auto' ? (user?.email ?? '') : pinned === 'default' || pinned === 'focus' ? '' : 'tin@email.com'
   const [email, setEmail] = useState(seed)
-  const [confirm, setConfirm] = useState(pinned === 'mismatch' ? 'ken@emai' : seed)
+  const [confirm, setConfirm] = useState(pinned === 'mismatch' ? 'tin@emai' : seed)
   const [confirmBlurred, setConfirmBlurred] = useState(pinned === 'mismatch')
   const [mobile, setMobile] = useState('')
   const confirmed = isEmail(email) && confirm === email

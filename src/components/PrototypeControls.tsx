@@ -571,11 +571,12 @@ export default function PrototypeControls() {
       )}
 
       {open && (
+        // fixed height (content scrolls inside, gutter reserved) so the panel keeps its size on every page and tab
         <aside
           aria-label="Prototype controls"
           ref={(el) => void (ref.current = el)}
           style={place}
-          className="fixed right-[12px] bottom-[12px] z-[60] flex max-h-[calc(100dvh-24px)] w-[360px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-[20px] border border-[#e4e4e7] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.14)]"
+          className="fixed right-[12px] bottom-[12px] z-[60] flex h-[min(640px,calc(100dvh-24px))] w-[360px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-[20px] border border-[#e4e4e7] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.14)]"
         >
           {/* header: drag handle + current status */}
           <header {...handlers} style={{ touchAction: 'none' }} className="cursor-grab px-[16px] pt-[14px] pb-[12px] select-none active:cursor-grabbing">
@@ -607,7 +608,7 @@ export default function PrototypeControls() {
             ))}
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-[16px] pt-[14px] pb-[16px] [scrollbar-width:thin]">
+          <div className="min-h-0 flex-1 overflow-y-auto px-[16px] pt-[14px] pb-[16px] [scrollbar-gutter:stable] [scrollbar-width:thin]">
             {tab === 'status' && (
               <div className="animate-page-enter">
                 <div className="mb-[16px] grid grid-cols-1 gap-y-[6px]">

@@ -97,7 +97,7 @@ export default function PaymentSheet({ open, method = 'card', total, line, onPai
           </span>
           <h2 className="mt-[16px] text-[20px] leading-[28px] font-bold text-text-primary">Payment didn’t go through</h2>
           <p className="mt-[6px] text-[14px] leading-[21px] text-[#5e5d5f]">
-            <span className="font-semibold text-text-primary">Voucher no longer available.</span> All vouchers were claimed before you completed checkout. They go to whoever pays first.
+            <span className="font-semibold text-text-primary">Voucher no longer available.</span> All vouchers were claimed before you completed checkout. Vouchers are allocated on a first-come, first-served basis upon successful payment.
           </p>
           <p className="mt-[8px] text-[13px] leading-[19px] text-[#16a34a]">You haven’t been charged. Your booking details are kept.</p>
           <div className="mt-[20px] flex w-full items-center justify-between rounded-16 bg-[#f8f8fa] px-[16px] py-[12px]">

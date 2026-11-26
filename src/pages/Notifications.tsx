@@ -31,7 +31,7 @@ const TONE: Record<NotificationKind, { bg: string; fg: string; path: string }> =
 function Row({ n, onOpen }: { n: AppNotification; onOpen: () => void }) {
   const t = TONE[n.kind]
   return (
-    <button type="button" onClick={onOpen} className={`flex w-full items-start gap-[12px] px-[16px] py-[14px] text-left transition-colors ${n.read ? 'bg-white active:bg-[#f8fafc]' : 'bg-[#ffedd5] active:bg-[#fed7aa]'}`}>
+    <button type="button" onClick={onOpen} className={`flex w-full items-start gap-[12px] px-[16px] py-[14px] text-left transition-colors ${n.read ? 'bg-white active:bg-[#f8fafc]' : 'bg-[#fff3e7] active:bg-[#ffe8d1]'}`}>
       <span className="flex size-[40px] shrink-0 items-center justify-center rounded-full ring-2 ring-white" style={{ background: t.bg, color: t.fg }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d={t.path} />

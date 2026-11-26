@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { useBooking, type PassengerDetail, type VehicleDetail } from '../booking/BookingContext'
 import BookingHeader from '../components/booking/BookingHeader'
-import RouteBanner from '../components/booking/RouteBanner'
+import ReviewRouteBanner from '../components/step-review/ReviewRouteBanner'
 import StepFooter from '../components/booking/StepFooter'
 import { SheetPresence } from '../components/Drawer'
 import VehicleTypeSheet from '../components/step-passengers/VehicleTypeSheet'
@@ -168,7 +168,8 @@ export default function PassengerDetails() {
   return (
     <div className="flex min-h-dvh flex-col bg-white">
       <BookingHeader title="Passenger Details" screen="details" />
-      <RouteBanner variant="details" />
+      {/* same route header as Review & pay: the departure is picked by now, so show Departs / Arrives */}
+      <ReviewRouteBanner />
 
       <div className="flex flex-1 flex-col gap-[8px] px-[16px] pt-[8px] pb-[16px]">
         <p className="text-[16px] leading-[24px] font-medium text-text-secondary">

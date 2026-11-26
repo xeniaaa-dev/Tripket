@@ -1,8 +1,16 @@
 import { useBooking } from '../../booking/BookingContext'
+import { arrivalNoteFor, findDeparture } from '../../data/departures'
+import { shortDate } from '../../data/step-review'
 
 // Figma: review "Banner" (node 12348:931) — like the shared RouteBanner but with Departs / Arrives dates under the cities.
-export default function ReviewRouteBanner({ departs, arrives }: { departs: string; arrives: string }) {
-  const { from, to } = useBooking().booking
+// Also used on Passengers & vehicle (Schedule flow, sailing already picked) and Passenger details, so the route header with
+// Departs / Arrives is the same on every step once a departure is known. Without props it reads the dates from the booking.
+export default function ReviewRouteBanner(props: { departs?: string; arrives?: string }) {
+  const { booking } = useBooking()
+  const { from, to } = booking
+  const d = findDeparture(booking.departureId)
+  const departs = props.departs ?? `Departs ${shortDate(booking.date)}`
+  const arrives = props.arrives ?? (d ? arrivalNoteFor(d, booking.date) : '')
   return (
     <div className="border-b-[0.5px] border-border-default bg-white px-[16px] py-[12px]">
       <div className="flex w-full items-center gap-[8px] whitespace-nowrap">
