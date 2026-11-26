@@ -81,7 +81,7 @@ export function reviewData(booking: BookingState) {
 /** Row style: "₱1350.00" */
 export const peso = (n: number) => `₱${n.toFixed(2)}`
 /** Total / CTA style: "₱2,490" */
-export const pesoTotal = (n: number) => `₱${n.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+export const pesoTotal = (n: number) => `₱${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 

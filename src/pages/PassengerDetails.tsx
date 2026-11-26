@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { pesoTotal } from '../data/step-review'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
 import { useBooking, type PassengerDetail, type VehicleDetail } from '../booking/BookingContext'
@@ -17,7 +18,7 @@ import { VehicleFormSheet } from '../components/step-details/Forms'
 import { CarSecondary, UserSecondary } from '../components/step-details/icons'
 import { EmptySlot, FreeBanner, PassengerCard, SectionHeader, UndoToast, VehicleCard } from '../components/step-details/Slots'
 import { findDeparture } from '../data/departures'
-import { cabins, FREE_PER_VEHICLE, peso, savedPassengers, savedVehicles, VEHICLE_FARE, type SavedPassenger as SlotPassenger } from '../data/step-details'
+import { cabins, FREE_PER_VEHICLE, savedPassengers, savedVehicles, VEHICLE_FARE, type SavedPassenger as SlotPassenger } from '../data/step-details'
 
 // Figma "Booking Flow (New)" → Book - Fill Up Passenger Details (node 11598:39242) / Passenger Details Filled (node 11598:42946)
 
@@ -252,7 +253,7 @@ export default function PassengerDetails() {
             // node 11598:43198
             <div className="mb-[8px] flex items-center justify-between px-[4px]">
               <span className="type-caption-sm text-[#8e8e93]">Estimated total</span>
-              <span className="text-[14px] leading-[21px] font-bold text-primary-default">~{peso(total)}</span>
+              <span className="text-[14px] leading-[21px] font-bold text-primary-default">~{pesoTotal(total)}</span>
             </div>
           ) : (
             // node 11598:39403

@@ -11,7 +11,7 @@ import type { TicketView } from '../../data/tickets'
 
 const short = (d: Date) => `${d.toLocaleDateString('en-US', { month: 'short' })} ${d.getDate()}`
 const LABEL: Partial<Record<TicketView['status'], string>> = { expired: 'Expired', refunded: 'Refunded', for_refund: 'For refund' }
-const peso = (n: number) => `₱${n.toLocaleString('en-PH', { maximumFractionDigits: 2 })}`
+const peso = (n: number) => `₱${n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 const Stat = ({ icon, children }: { icon: string; children: string }) => (
   <div className="flex shrink-0 items-center gap-[4px]">

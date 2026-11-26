@@ -7,7 +7,7 @@ import DepartureButton from '../components/step-departure/DepartureButton'
 import PaxSummaryChip from '../components/step-departure/PaxSummaryChip'
 import { useBooking } from '../booking/BookingContext'
 import { nextPath } from '../booking/flows'
-import { arrivalNoteFor, departures, findDeparture } from '../data/departures'
+import { arrivalNoteFor, departures, findDeparture, unavailableReason } from '../data/departures'
 import { estimateTotal, pesoTotal, reviewData } from '../data/step-review'
 import { VOUCHER } from '../data/policy'
 import infoNote from '../assets/figma/confirmation/info-note.svg'
@@ -25,7 +25,10 @@ export default function SelectDeparture() {
   const list = booking.vehicleCount > 0 ? byLine.filter((d) => d.vesselType === 'RoRo') : byLine
   // passenger types and vehicle type are only known once Passenger details has been filled (or carried over by a rebook / return trip)
   const booked = booking.passengers.length > 0
-  const picked = list.some((d) => d.id === booking.departureId) ? booking.departureId : null
+  // sailings that already left (travel date today), are fully booked, or have fewer seats than passengers can't be picked
+  const reason = (d: (typeof list)[number]) => unavailableReason(d, booking.date, booking.passengerCount)
+  const anyDeparted = list.some((d) => reason(d) === 'departed')
+  const picked = list.some((d) => d.id === booking.departureId && !reason(d)) ? booking.departureId : null
   const pickedDeparture = list.find((d) => d.id === picked)
   // all-in estimate for the picked sailing: exact once passengers are filled (rebook / return trip)
   const estimate = pickedDeparture && (booked ? reviewData(booking).total : estimateTotal(pickedDeparture, booking).total)
@@ -50,6 +53,12 @@ export default function SelectDeparture() {
             </span>
           )}
         </div>
+        {anyDeparted && (
+          // user's reference: red notice when some sailings on this date have already left
+          <p role="alert" className="mt-[12px] rounded-16 border border-[#fca5a5] bg-[#fef2f2] px-[16px] py-[12px] text-[13px] leading-[19px] text-[#ef4444]">
+            The leg is not available for booking. The booking date/time should be before departure time.
+          </p>
+        )}
         <h2 className="mt-[9px] text-[14px] leading-[20px] font-semibold tracking-[0.3px] text-[#8e8e93] uppercase">Departures</h2>
         <div className="mt-[12px] mb-[16px] flex flex-col overflow-clip rounded-16 border border-[#e5e5e5] bg-white">
           {list.length === 0 && (
@@ -65,6 +74,7 @@ export default function SelectDeparture() {
               selected={picked === d.id}
               first={i === 0}
               last={i === list.length - 1}
+              unavailable={reason(d)}
               // tapping the selected departure again unselects it (estimated total hides, Next disables)
               onSelect={() => update({ departureId: picked === d.id ? null : d.id })}
             />
