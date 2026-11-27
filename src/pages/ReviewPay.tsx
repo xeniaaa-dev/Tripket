@@ -5,11 +5,12 @@ import BookingHeader from '../components/booking/BookingHeader'
 import StepFooter from '../components/booking/StepFooter'
 import PaymentSheet from '../components/tickets/PaymentSheet'
 import ReviewRouteBanner from '../components/step-review/ReviewRouteBanner'
-import { ContactDetails, PassengersSection, PaymentMethod, type PayMethod, PriceSummary, FooterTerms, TermsNote, TripDetails, VehiclesSection, VoucherField } from '../components/step-review/ReviewSections'
+import { ContactDetails, PassengersSection, PaymentMethod, type PayMethod, TermsNote, TripDetails, VehiclesSection } from '../components/step-review/ReviewSections'
+import { PriceSummary, TotalBar, VoucherCard } from '../components/step-review/Vouchers'
 import { pesoTotal, reviewData, SERVICE_FEE, shortDate } from '../data/step-review'
-import { LINES, lineOf } from '../data/tickets'
-import { checkVoucher, VOUCHERS } from '../data/policy'
-import { setProtoFlag, voucherDemo } from '../proto/flags'
+import { LINES, lineOf, type ShippingLine } from '../data/tickets'
+import { checkVoucher, VOUCHERS, type VoucherCheck } from '../data/policy'
+import { setProtoFlag, useProtoFlags, voucherDemo, type ProtoFlags } from '../proto/flags'
 import type { TicketStatus } from '../booking/BookingContext'
 
 // Figma: "Book - Review - Single Leg - No terminal Fee" (node 12348:746)
@@ -40,6 +41,14 @@ export default function ReviewPay() {
     navigate(`/book/confirmed?id=${addTicket(total, status)}`, { replace: true })
   }
 
+  // Vouchers card: usable ones as orange tickets, the rest greyed out with the reason (prototype controls can show none usable / none at all)
+  const flags = useProtoFlags()
+  const vouchers = voucherLists(subtotal, line, flags.voucherList)
+  // prototype controls → Voucher animation: compare the two versions
+  const barVersion = flags.voucherAnim === 'bar'
+  // the Terms line now sits under the Mobile number (Contact details)
+  const footerNote = !emailOk ? <p className="mb-[8px] text-center text-[14px] leading-[20px] text-[#f97316]">Enter and confirm your email to continue</p> : undefined
+
   return (
     <div className="flex min-h-dvh flex-col bg-white">
       <BookingHeader title="Review & pay" screen="review" />
@@ -52,10 +61,12 @@ export default function ReviewPay() {
         <div className="flex w-full flex-col gap-[8px]">
           <PassengersSection passengers={passengers} />
           {vehicles.length > 0 && <VehiclesSection vehicles={vehicles} />}
-          <VoucherField
+          <VoucherCard
             applied={voucher}
-            saved={discount || SERVICE_FEE - serviceFee}
             gone={gone}
+            check={(code) => checkVoucher(code, { subtotal, line })}
+            suggestions={vouchers.usable}
+            unavailable={vouchers.unavailable}
             onApply={(code) => {
               const result = checkVoucher(code, { subtotal, line })
               if (result === 'ok') {
@@ -64,25 +75,28 @@ export default function ReviewPay() {
               }
               return result
             }}
-            onRemove={() => update({ voucher: undefined })}
           />
-          <PriceSummary subtotal={subtotal} serviceFee={serviceFee} discount={discount} voucher={voucher} total={total} />
+          <PriceSummary subtotal={subtotal} serviceFee={serviceFee} discount={discount} voucher={voucher} total={total} onRemove={() => update({ voucher: undefined })} bar={barVersion} />
         </div>
         <PaymentMethod method={method} onChange={setMethod} />
         <ContactDetails onConfirmed={setEmailOk} />
       </div>
 
-      <StepFooter
-        note={
-          <>
-            {!emailOk && <p className="mb-[8px] text-center text-[14px] leading-[20px] text-[#f97316]">Enter and confirm your email to continue</p>}
-            <FooterTerms />
-          </>
-        }
-        disabled={!emailOk}
-        onClick={() => setPaying(true)}>
-        <span className="font-bold whitespace-pre">{`Pay ${pesoTotal(total)}  `}</span>
-      </StepFooter>
+      {barVersion ? (
+        <TotalBar
+          total={total}
+          voucher={voucher}
+          saved={discount || SERVICE_FEE - serviceFee}
+          onRemove={() => update({ voucher: undefined })}
+          note={footerNote}
+          disabled={!emailOk}
+          onPay={() => setPaying(true)}
+        />
+      ) : (
+        <StepFooter note={footerNote} disabled={!emailOk} onClick={() => setPaying(true)}>
+          <span className="font-bold whitespace-pre">{`Pay ${pesoTotal(total)}  `}</span>
+        </StepFooter>
+      )}
       <PaymentSheet open={paying} method={method} total={total} line={line} onPaid={() => submit(LINES[line].paidStatus)} onFailed={() => submit('failed')} onClose={() => submit('pending')}
         limitedVoucher={!!voucher && VOUCHERS[voucher]?.limited}
         onVoucherGone={() => {
@@ -100,4 +114,21 @@ export default function ReviewPay() {
       />
     </div>
   )
+}
+
+/** why a voucher can't be used on this booking (shown under its grey ticket) */
+function unavailableReason(code: string, result: VoucherCheck) {
+  const v = VOUCHERS[code]
+  if (result === 'expired') return 'Expired'
+  if (v.line) return `${LINES[v.line].name} only`
+  if (v.min) return `For bookings ₱${v.min.toLocaleString('en-US')}+`
+  return 'Fully claimed'
+}
+
+function voucherLists(subtotal: number, line: ShippingLine, mode: ProtoFlags['voucherList']) {
+  if (mode === 'empty') return { usable: [], unavailable: [] }
+  const codes = Object.keys(VOUCHERS).filter((c) => VOUCHERS[c].off !== 'fee')
+  const usable = mode === 'auto' ? codes.filter((c) => checkVoucher(c, { subtotal, line }) === 'ok') : []
+  const unavailable = codes.filter((c) => !usable.includes(c)).map((code) => ({ code, reason: unavailableReason(code, checkVoucher(code, { subtotal, line })) }))
+  return { usable, unavailable }
 }

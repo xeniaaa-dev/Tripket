@@ -77,7 +77,10 @@ type Ctx = {
   /** Prototype controls: replace every ticket */
   seedTickets: (list: Ticket[]) => void
 }
-const BookingContext = createContext<Ctx | null>(null)
+// kept on globalThis so a dev hot reload of this file reuses the same context (otherwise the page shows
+// "useBooking must be used inside <BookingProvider>" until a full refresh)
+const g = globalThis as { __bookingContext?: React.Context<Ctx | null> }
+const BookingContext = (g.__bookingContext ??= createContext<Ctx | null>(null))
 
 export function BookingProvider({ children }: { children: ReactNode }) {
   const [booking, setBooking] = useState(defaultBooking)

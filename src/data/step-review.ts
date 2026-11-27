@@ -45,8 +45,9 @@ export const serviceFeeOf = (b: { voucher?: string }) => (b.voucher && VOUCHERS[
 
 /** Peso discount from an amount voucher (SAVE200 etc.), never more than the fares. */
 export function discountOf(b: { voucher?: string }, subtotal: number) {
-  const off = b.voucher ? VOUCHERS[b.voucher]?.off : undefined
-  return typeof off === 'number' ? Math.min(off, subtotal) : 0
+  const v = b.voucher ? VOUCHERS[b.voucher] : undefined
+  if (!v || typeof v.off !== 'number') return 0
+  return Math.min(v.pct ? Math.round((subtotal * v.pct) / 100) : v.off, v.off, subtotal)
 }
 
 /** Subtotal − voucher + service fee. */

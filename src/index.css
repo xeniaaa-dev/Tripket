@@ -173,3 +173,21 @@ body {
     width: 100%;
   }
 }
+
+/* voucher tag forming beside the total out of the coupon dust (ReviewSections VoucherTag) */
+@keyframes tag-form {
+  from { opacity: 0; transform: scale(0.6); filter: blur(6px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+/* "Voucher · CODE" price row sliding open on Review & pay */
+@keyframes row-in {
+  from { max-height: 0; opacity: 0; }
+  to { max-height: 27px; opacity: 1; }
+}
+
+/* bottom-bar voucher version: room for the mini ticket opens before it forms */
+@keyframes tag-slot {
+  from { width: 0; margin-right: -8px; }
+  to { width: 76px; margin-right: 0; }
+}

@@ -445,6 +445,26 @@ export default function PrototypeControls() {
       setTimeout(() => go(`/tickets/${t.id}`), 80)
     },
   })
+  const voucherAnim = (mode: 'inline' | 'bar', title: string): Screen => ({
+    title,
+    active: flags.voucherAnim === mode,
+    run: () => {
+      setProtoFlag('voucherAnim', mode)
+      stdPage('/book/review')()
+      update({ voucher: undefined })
+      setTimeout(() => document.getElementById('voucher')?.scrollIntoView({ block: 'center' }), 700)
+    },
+  })
+  const voucherList = (mode: 'auto' | 'none-usable' | 'empty', title: string): Screen => ({
+    title,
+    active: flags.voucherList === mode,
+    run: () => {
+      setProtoFlag('voucherList', mode)
+      stdPage('/book/review')()
+      update({ voucher: undefined })
+      setTimeout(() => document.getElementById('voucher')?.scrollIntoView({ block: 'center' }), 700)
+    },
+  })
   const emailPin = (st: 'auto' | 'default' | 'focus' | 'mismatch' | 'confirmed', title: string): Screen => ({
     title,
     active: flags.emailState === st,
@@ -476,6 +496,15 @@ export default function PrototypeControls() {
       emailPin('focus', 'Focused'),
       emailPin('mismatch', 'Emails don’t match'),
       emailPin('confirmed', 'Confirmed'),
+    ]],
+    ['Voucher animation (Review & pay)', [
+      voucherAnim('inline', 'Version 1 · lands under the Total'),
+      voucherAnim('bar', 'Version 2 · lands in the bottom Pay bar'),
+    ]],
+    ['Voucher list (Review & pay)', [
+      voucherList('auto', 'Normal'),
+      voucherList('none-usable', 'None available for this booking'),
+      voucherList('empty', 'No vouchers (empty)'),
     ]],
     ['Voucher states (Review & pay)', [
       voucherTry('Applied', 'SAVE200'),

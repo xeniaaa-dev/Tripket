@@ -15,9 +15,13 @@ export type ProtoFlags = {
   maintenance: boolean
   /** Review & pay email card: force one of its four Figma states (auto = behave normally) */
   emailState: 'auto' | 'default' | 'focus' | 'mismatch' | 'confirmed'
+  /** Review & pay Vouchers card: normal list, none usable for this booking (all greyed out), or no vouchers at all */
+  voucherList: 'auto' | 'none-usable' | 'empty'
+  /** voucher animation version to compare: dust lands under the Total in the page, or in the fixed Pay bar at the bottom */
+  voucherAnim: 'inline' | 'bar'
 }
 
-let flags: ProtoFlags = { fast: false, declineNext: false, vouchersGone: false, offline: false, maintenance: false, emailState: 'auto' }
+let flags: ProtoFlags = { fast: false, declineNext: false, vouchersGone: false, offline: false, maintenance: false, emailState: 'auto', voucherList: 'auto', voucherAnim: 'inline' }
 const listeners = new Set<() => void>()
 
 /** Prototype controls → Voucher states: Review & pay registers these while it's open (type + Apply a code / show "no longer available"). */

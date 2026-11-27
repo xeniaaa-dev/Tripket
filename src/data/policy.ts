@@ -11,9 +11,12 @@ export const VOUCHER = { code: 'NO-FEE', title: '₱0 service fee', note: 'on yo
  * `limited` vouchers are first-come, first-served: applying does not reserve one, it's only used when payment completes
  * (prototype: the "Vouchers run out at checkout" switch makes the next Pay find them all claimed).
  */
-export type VoucherDef = { off: number | 'fee'; limited: boolean; expired?: boolean; line?: ShippingLine; min?: number; terms: string }
+/** off: pesos off (or the cap when `pct` is set); pct: percent off the fares, up to `off` */
+export type VoucherDef = { off: number | 'fee'; pct?: number; limited: boolean; expired?: boolean; line?: ShippingLine; min?: number; terms: string }
 export const VOUCHERS: Record<string, VoucherDef> = {
   [VOUCHER.code]: { off: 'fee', limited: false, terms: 'Return trips booked from your confirmation' },
+  SAIL10: { off: 300, pct: 10, limited: true, terms: '10% off, up to ₱300' },
+  WELCOME150: { off: 150, limited: true, terms: '₱150 off your booking' },
   SAVE200: { off: 200, limited: true, terms: '₱200 off any booking' },
   MAAYO150: { off: 150, limited: true, line: 'maayo', terms: 'Maayo Shipping routes only' },
   BIG500: { off: 500, limited: true, min: 5000, terms: '₱500 off bookings of ₱5,000 or more' },
